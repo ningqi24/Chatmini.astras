@@ -877,34 +877,43 @@
         // ==========================================
         // 5. 用户资料管理（含昵称和 ID）
         // ==========================================
-        async function loadUserProfile(email) {
-            try {
-                const { data, error } = await window.supabaseClient
-                    .from('profiles')
-                    .select('id, username')   // ✅ 同时获取 id
-                    .eq('email', email)
-                    .single();
-                if (error && error.code !== 'PGRST116') throw error;
-                if (data) {
-                    currentUserId = data.id;           // ✅ 保存用户 ID
-                    if (data.username) {
-                        currentDisplayName = data.username;
-                    } else {
-                        currentDisplayName = email;
-                    }
-                } else {
-                    currentDisplayName = email;
-                }
-                sidebarUserEmail.textContent = currentDisplayName;
-                if (usernameInput) {
-                    usernameInput.value = data?.username || '';
-                }
-            } catch (err) {
-                console.warn('加载用户资料失败:', err);
-                currentDisplayName = email;
-                sidebarUserEmail.textContent = currentDisplayName;
-            }
+async function loadUserProfile(email) {
+    try {
+        // ① 从 Auth 会话获取用户 ID（最可靠）
+        const session = await window.supabaseClient.auth.getSession();
+        if (session.data?.session?.user?.id) {
+            currentUserId = session.data.session.user.id;
+            console.log('✅ 用户 ID 已获取:', currentUserId);
+        } else {
+            console.warn('⚠️ 未获取到用户 ID，请重新登录');
+            setAuthMessage('会话已过期，请重新登录', 'error');
+            // 可选：自动退出
+            // window.handleLogout();
+            return;
         }
+
+        // ② 从 profiles 表获取昵称（不影响 ID）
+        const { data, error } = await window.supabaseClient
+            .from('profiles')
+            .select('username')
+            .eq('email', email)
+            .single();
+        if (error && error.code !== 'PGRST116') throw error;
+        if (data && data.username) {
+            currentDisplayName = data.username;
+        } else {
+            currentDisplayName = email;
+        }
+        sidebarUserEmail.textContent = currentDisplayName;
+        if (usernameInput) {
+            usernameInput.value = data?.username || '';
+        }
+    } catch (err) {
+        console.warn('加载用户资料失败:', err);
+        currentDisplayName = email;
+        sidebarUserEmail.textContent = currentDisplayName;
+    }
+}
 
         async function saveUsername() {
             if (!usernameInput) return;
