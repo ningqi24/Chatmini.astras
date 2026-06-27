@@ -92,11 +92,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 48px;
+            gap: 10px;  /* 修改为刚好接触多10像素 */
         }
         .splash-inner .splash-icon {
-            height: 120px;
-            width: 120px;
+            height: 240px;  /* 原来 120px，2 倍 */
+            width: 240px;
             object-fit: contain;
             filter: drop-shadow(0 4px 12px rgba(59,130,246,0.3));
         }
@@ -615,8 +615,9 @@
             .chat-main .chat-messages { padding: 12px; }
             .chat-main .input-area { padding: 10px 16px 16px; }
             .login-card { padding: 28px 20px; }
-            .splash-inner .splash-icon { height: 60px; width: 60px; }
-            .splash-inner { gap: 24px; }
+            /* 响应式下 splash 图标缩小，但用户要求2倍，我们按比例缩小 */
+            .splash-inner .splash-icon { height: 120px; width: 120px; }
+            .splash-inner { gap: 6px; }
             .splash-bar { width: 260px; }
         }
         @media (max-width: 480px) {
@@ -624,8 +625,8 @@
             .sidebar .logo-area img { height: 28px; }
             .sidebar .nav-item { padding: 10px; }
             .chat-main .message { max-width: 90%; }
-            .splash-inner .splash-icon { height: 48px; width: 48px; }
-            .splash-inner { gap: 16px; }
+            .splash-inner .splash-icon { height: 80px; width: 80px; }
+            .splash-inner { gap: 4px; }
             .splash-bar { width: calc(100% - 48px); }
         }
     </style>
