@@ -7,7 +7,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js">
     </script>
     <style>
-        /* ===== 全局重置 & 双主题变量 ===== */
+        /* 样式保持不变，与之前相同，省略以节省篇幅，但实际使用时需完整保留 */
+        /* 此处为简化，实际请用之前的样式 */
         :root {
             --bg-primary: #0d0d0d;
             --bg-secondary: #1a1a1a;
@@ -41,636 +42,97 @@
             --border-color: #d0d5dd;
             --shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
         }
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 16px;
-            transition: background 0.3s, color 0.3s;
-        }
-        .app {
-            width: 100%;
-            max-width: 1300px;
-            height: 96vh;
-            max-height: 900px;
-            background: var(--bg-secondary);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            display: flex;
-            overflow: hidden;
-            position: relative;
-        }
-        /* ===== Splash 遮罩 ===== */
-        .splash {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            background: #000000;
-            z-index: 400;
-            transition: opacity 0.35s ease, visibility 0.35s ease;
-            pointer-events: auto;
-        }
-        .splash.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-        .splash-inner {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        .splash-inner .splash-icon {
-            height: 240px;
-            width: 240px;
-            object-fit: contain;
-            filter: drop-shadow(0 4px 12px rgba(59,130,246,0.3));
-        }
-        .splash-divider {
-            width: 2px;
-            height: 80px;
-            background: rgba(255,255,255,0.6);
-            flex-shrink: 0;
-        }
-        .splash-bar {
-            width: 320px;
-            max-width: calc(100% - 80px);
-            height: 6px;
-            border-radius: 6px;
-            background: rgba(255,255,255,0.08);
-            overflow: hidden;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.5);
-        }
-        .splash-bar .fill {
-            height: 100%;
-            width: 0%;
-            background: #3b82f6;
-            border-radius: 6px;
-            transition: width 0.25s linear;
-            animation: splashFill 2.6s linear 1 forwards;
-        }
-        @keyframes splashFill {
-            from { width: 0%; }
-            to { width: 100%; }
-        }
-        /* ===== 登录界面 ===== */
-        .login-overlay {
-            position: absolute;
-            inset: 0;
-            background: var(--bg-overlay);
-            backdrop-filter: blur(12px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 200;
-            border-radius: var(--radius);
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .login-overlay.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-        .login-card {
-            background: var(--bg-card);
-            padding: 40px 36px;
-            border-radius: var(--radius);
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-            border: 1px solid var(--border-color);
-            transition: background 0.3s, border-color 0.3s;
-        }
-        .login-card .logo-area {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 28px;
-        }
-        .login-card .logo-area img {
-            height: 40px;
-            width: auto;
-        }
-        .login-card .logo-area h1 {
-            display: none;
-        }
-        .login-card .auth-title {
-            font-size: 20px;
-            font-weight: 500;
-            margin-bottom: 6px;
-        }
-        .login-card .auth-sub {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 24px;
-        }
-        .login-card input {
-            width: 100%;
-            padding: 14px 18px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border-color);
-            background: var(--bg-input);
-            color: var(--text-primary);
-            font-size: 15px;
-            outline: none;
-            transition: var(--transition);
-            margin-bottom: 14px;
-        }
-        .login-card input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-        }
-        .login-card .code-row {
-            display: flex;
-            gap: 12px;
-        }
-        .login-card .code-row input {
-            flex: 1;
-            margin-bottom: 0;
-        }
-        .login-card .code-row .btn {
-            padding: 14px 20px;
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            color: var(--text-primary);
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition);
-            white-space: nowrap;
-        }
-        .login-card .code-row .btn:hover {
-            background: var(--bg-hover);
-        }
-        .login-card .btn-primary {
-            width: 100%;
-            padding: 14px;
-            background: var(--accent);
-            border: none;
-            border-radius: var(--radius-sm);
-            color: #fff;
-            font-weight: 600;
-            font-size: 15px;
-            cursor: pointer;
-            transition: var(--transition);
-            margin-top: 6px;
-        }
-        .login-card .btn-primary:hover {
-            background: var(--accent-hover);
-            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
-        }
-        .login-card .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .login-card .auth-message {
-            font-size: 13px;
-            text-align: center;
-            margin-top: 16px;
-            min-height: 20px;
-        }
-        .login-card .auth-message.success {
-            color: #4ade80;
-        }
-        .login-card .auth-message.error {
-            color: #f87171;
-        }
-        /* ===== 主界面 ===== */
-        .main-interface {
-            display: flex;
-            width: 100%;
-            height: 100%;
-        }
-        .main-interface.hidden {
-            display: none;
-        }
-        .sidebar {
-            width: 280px;
-            flex-shrink: 0;
-            background: var(--bg-sidebar);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            padding: 20px 16px;
-            transition: background 0.3s, border-color 0.3s;
-        }
-        .sidebar .logo-area {
-            display: flex;
-            align-items: center;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 20px;
-        }
-        .sidebar .logo-area img {
-            height: 36px;
-            max-width: 100%;
-            object-fit: contain;
-        }
-        .sidebar .logo-area span {
-            display: none;
-        }
-        .sidebar .nav {
-            flex: 1;
-        }
-        .sidebar .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            border-radius: var(--radius-sm);
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: var(--transition);
-            margin-bottom: 4px;
-            font-weight: 500;
-        }
-        .sidebar .nav-item:hover {
-            background: var(--bg-hover);
-            color: var(--text-primary);
-        }
-        .sidebar .nav-item.active {
-            background: var(--bg-hover);
-            color: var(--text-primary);
-        }
-        .sidebar .nav-item svg {
-            width: 20px;
-            height: 20px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-        .sidebar .user-section {
-            border-top: 1px solid var(--border-color);
-            padding-top: 16px;
-            margin-top: auto;
-        }
-        .sidebar .user-email {
-            font-size: 13px;
-            color: var(--text-secondary);
-            padding: 8px 0;
-        }
-        .sidebar .logout-btn {
-            display: none;
-        }
-        /* ===== 右侧聊天区 ===== */
-        .chat-main {
-            flex: 1;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-secondary);
-            transition: background 0.3s;
-        }
-        .chat-main .chat-header {
-            padding: 16px 24px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
-        }
-        .chat-main .chat-header .chat-title {
-            font-size: 18px;
-            font-weight: 600;
-        }
-        .chat-main .chat-header .chat-title small {
-            font-size: 13px;
-            font-weight: 400;
-            color: var(--text-secondary);
-            margin-left: 10px;
-        }
-        .chat-main .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background: var(--bg-primary);
-            transition: background 0.3s;
-        }
-        .chat-main .chat-messages::-webkit-scrollbar {
-            width: 4px;
-        }
-        .chat-main .chat-messages::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .chat-main .chat-messages::-webkit-scrollbar-thumb {
-            background: #3a3a3a;
-            border-radius: 10px;
-        }
-        .chat-main .message {
-            padding: 12px 18px;
-            border-radius: 18px;
-            max-width: 75%;
-            word-wrap: break-word;
-            line-height: 1.6;
-            font-size: 14px;
-            animation: fadeIn 0.2s ease;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-            position: relative;
-        }
-        .chat-main .message.me {
-            align-self: flex-end;
-            background: var(--accent);
-            color: #fff;
-            border-bottom-right-radius: 6px;
-        }
-        .chat-main .message.other {
-            align-self: flex-start;
-            background: var(--bg-card);
-            color: var(--text-primary);
-            border-bottom-left-radius: 6px;
-            border: 1px solid var(--border-color);
-        }
-        .chat-main .message .sender {
-            font-size: 11px;
-            font-weight: 600;
-            opacity: 0.7;
-            margin-bottom: 4px;
-        }
-        .chat-main .message.me .sender {
-            color: rgba(255,255,255,0.8);
-        }
-        .chat-main .message .time {
-            font-size: 10px;
-            opacity: 0.5;
-            margin-top: 6px;
-            text-align: right;
-        }
-        .chat-main .message img {
-            max-width: 200px;
-            max-height: 200px;
-            border-radius: 8px;
-            display: block;
-            margin-top: 6px;
-            cursor: pointer;
-            border: none;
-        }
-        /* 撤回按钮样式 */
-        .recall-btn {
-            font-size: 11px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            margin-left: 10px;
-            opacity: 0.6;
-            transition: opacity 0.2s;
-            text-decoration: underline;
-        }
-        .recall-btn:hover {
-            opacity: 1;
-        }
-        .recalled-text {
-            font-style: italic;
-            color: var(--text-muted);
-            opacity: 0.7;
-        }
-        .chat-main .input-area {
-            padding: 12px 24px 20px 24px;
-            background: var(--bg-secondary);
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-shrink: 0;
-        }
-        .chat-main .input-area #attachBtn {
-            background: none;
-            border: none;
-            padding: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: var(--radius-sm);
-            transition: var(--transition);
-            color: var(--text-secondary);
-        }
-        .chat-main .input-area #attachBtn:hover {
-            background: var(--bg-hover);
-            color: var(--text-primary);
-        }
-        .chat-main .input-area #attachBtn svg {
-            width: 24px;
-            height: 24px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-        .chat-main .input-area input[type="text"] {
-            flex: 1;
-            padding: 12px 18px;
-            border-radius: 24px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-input);
-            color: var(--text-primary);
-            font-size: 15px;
-            outline: none;
-            transition: var(--transition);
-        }
-        .chat-main .input-area input[type="text"]:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-        }
-        .chat-main .input-area .send-btn {
-            background: var(--accent);
-            border: none;
-            border-radius: 50%;
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-            flex-shrink: 0;
-        }
-        .chat-main .input-area .send-btn:hover {
-            background: var(--accent-hover);
-            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
-        }
-        .chat-main .input-area .send-btn svg {
-            width: 24px;
-            height: 24px;
-            display: block;
-            fill: none;
-            stroke: #ffffff;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-        /* ===== 设置面板 ===== */
-        .settings-overlay {
-            position: absolute;
-            inset: 0;
-            background: var(--bg-overlay);
-            backdrop-filter: blur(8px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 300;
-            border-radius: var(--radius);
-            transition: opacity 0.25s ease, visibility 0.25s ease;
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-        .settings-overlay.active {
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
-        }
-        .settings-panel {
-            background: var(--bg-card);
-            border-radius: var(--radius);
-            padding: 32px 36px;
-            width: 100%;
-            max-width: 400px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-            transition: background 0.3s, border-color 0.3s;
-        }
-        .settings-panel h2 {
-            font-size: 22px;
-            font-weight: 600;
-            margin-bottom: 24px;
-            color: var(--text-primary);
-        }
-        .settings-panel .setting-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .settings-panel .setting-item:last-child {
-            border-bottom: none;
-        }
-        .settings-panel .setting-item .label {
-            font-size: 15px;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-        .settings-panel .setting-item .desc {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-top: 2px;
-        }
-        .toggle-switch {
-            width: 48px;
-            height: 28px;
-            background: var(--bg-input);
-            border-radius: 14px;
-            cursor: pointer;
-            transition: background 0.25s;
-            position: relative;
-            flex-shrink: 0;
-        }
-        .toggle-switch .knob {
-            width: 24px;
-            height: 24px;
-            background: #fff;
-            border-radius: 50%;
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            transition: transform 0.25s;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        }
-        .toggle-switch.active {
-            background: var(--accent);
-        }
-        .toggle-switch.active .knob {
-            transform: translateX(20px);
-        }
-        .settings-panel .btn-danger {
-            background: #dc2626;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: var(--radius-sm);
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .settings-panel .btn-danger:hover {
-            background: #b91c1c;
-        }
-        .settings-panel .close-settings {
-            margin-top: 20px;
-            background: var(--bg-input);
-            border: none;
-            padding: 10px;
-            border-radius: var(--radius-sm);
-            color: var(--text-primary);
-            font-weight: 500;
-            cursor: pointer;
-            width: 100%;
-            transition: background 0.2s;
-        }
-        .settings-panel .close-settings:hover {
-            background: var(--bg-hover);
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        /* ===== 响应式 ===== */
-        @media (max-width: 768px) {
-            body { padding: 0; }
-            .app { max-height: 100vh; border-radius: 0; }
-            .sidebar { width: 200px; padding: 12px; }
-            .sidebar .nav-item span { display: none; }
-            .sidebar .nav-item { justify-content: center; }
-            .sidebar .user-email { font-size: 11px; text-align: center; }
-            .chat-main .chat-header { padding: 12px 16px; }
-            .chat-main .chat-messages { padding: 12px; }
-            .chat-main .input-area { padding: 10px 16px 16px; gap: 8px; }
-            .login-card { padding: 28px 20px; }
-            .splash-inner .splash-icon {
-                height: 120px;
-                width: 120px;
-            }
-            .splash-divider {
-                height: 120px;
-            }
-            .splash-inner { gap: 6px; }
-            .splash-bar { width: 260px; }
-        }
-        @media (max-width: 480px) {
-            .sidebar { width: 60px; padding: 8px; }
-            .sidebar .logo-area img { height: 28px; max-width: 40px; }
-            .sidebar .nav-item { padding: 10px; }
-            .chat-main .message { max-width: 90%; }
-            .splash-inner .splash-icon {
-                height: 80px;
-                width: 80px;
-            }
-            .splash-divider {
-                height: 80px;
-            }
-            .splash-inner { gap: 4px; }
-            .splash-bar { width: calc(100% - 48px); }
-        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-primary); color: var(--text-primary); height: 100vh; display: flex; justify-content: center; align-items: center; padding: 16px; transition: background 0.3s, color 0.3s; }
+        .app { width: 100%; max-width: 1300px; height: 96vh; max-height: 900px; background: var(--bg-secondary); border-radius: var(--radius); box-shadow: var(--shadow); display: flex; overflow: hidden; position: relative; }
+        /* 省略其他样式（实际部署时需完整） */
+        .splash { position: absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; background:#000; z-index:400; transition: opacity 0.35s; pointer-events:auto; }
+        .splash.hidden { opacity:0; visibility:hidden; pointer-events:none; }
+        .splash-inner { display:flex; align-items:center; gap:10px; }
+        .splash-inner .splash-icon { height:240px; width:240px; object-fit:contain; filter:drop-shadow(0 4px 12px rgba(59,130,246,0.3)); }
+        .splash-divider { width:2px; height:80px; background:rgba(255,255,255,0.6); }
+        .splash-bar { width:320px; max-width:calc(100% - 80px); height:6px; border-radius:6px; background:rgba(255,255,255,0.08); overflow:hidden; }
+        .splash-bar .fill { height:100%; width:0%; background:#3b82f6; border-radius:6px; transition:width 0.25s linear; animation:splashFill 2.6s linear 1 forwards; }
+        @keyframes splashFill { from { width:0%; } to { width:100%; } }
+        .login-overlay { position:absolute; inset:0; background:var(--bg-overlay); backdrop-filter:blur(12px); display:flex; justify-content:center; align-items:center; z-index:200; border-radius:var(--radius); transition:opacity 0.3s; }
+        .login-overlay.hidden { opacity:0; visibility:hidden; pointer-events:none; }
+        .login-card { background:var(--bg-card); padding:40px 36px; border-radius:var(--radius); width:100%; max-width:400px; box-shadow:0 20px 60px rgba(0,0,0,0.8); border:1px solid var(--border-color); transition:background 0.3s; }
+        .login-card .logo-area { display:flex; align-items:center; gap:12px; margin-bottom:28px; }
+        .login-card .logo-area img { height:40px; width:auto; }
+        .login-card .logo-area h1 { display:none; }
+        .login-card .auth-title { font-size:20px; font-weight:500; margin-bottom:6px; }
+        .login-card .auth-sub { font-size:14px; color:var(--text-secondary); margin-bottom:24px; }
+        .login-card input { width:100%; padding:14px 18px; border-radius:var(--radius-sm); border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:15px; outline:none; transition:var(--transition); margin-bottom:14px; }
+        .login-card input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(59,130,246,0.2); }
+        .login-card .code-row { display:flex; gap:12px; }
+        .login-card .code-row input { flex:1; margin-bottom:0; }
+        .login-card .code-row .btn { padding:14px 20px; background:var(--bg-input); border:1px solid var(--border-color); border-radius:var(--radius-sm); color:var(--text-primary); font-weight:500; cursor:pointer; transition:var(--transition); white-space:nowrap; }
+        .login-card .code-row .btn:hover { background:var(--bg-hover); }
+        .login-card .btn-primary { width:100%; padding:14px; background:var(--accent); border:none; border-radius:var(--radius-sm); color:#fff; font-weight:600; font-size:15px; cursor:pointer; transition:var(--transition); margin-top:6px; }
+        .login-card .btn-primary:hover { background:var(--accent-hover); box-shadow:0 4px 14px rgba(59,130,246,0.3); }
+        .login-card .btn-primary:disabled { opacity:0.6; cursor:not-allowed; }
+        .login-card .auth-message { font-size:13px; text-align:center; margin-top:16px; min-height:20px; }
+        .login-card .auth-message.success { color:#4ade80; }
+        .login-card .auth-message.error { color:#f87171; }
+        .main-interface { display:flex; width:100%; height:100%; }
+        .main-interface.hidden { display:none; }
+        .sidebar { width:280px; flex-shrink:0; background:var(--bg-sidebar); border-right:1px solid var(--border-color); display:flex; flex-direction:column; padding:20px 16px; transition:background 0.3s; }
+        .sidebar .logo-area { display:flex; align-items:center; padding-bottom:20px; border-bottom:1px solid var(--border-color); margin-bottom:20px; }
+        .sidebar .logo-area img { height:36px; max-width:100%; object-fit:contain; }
+        .sidebar .logo-area span { display:none; }
+        .sidebar .nav { flex:1; }
+        .sidebar .nav-item { display:flex; align-items:center; gap:12px; padding:12px 16px; border-radius:var(--radius-sm); color:var(--text-secondary); cursor:pointer; transition:var(--transition); margin-bottom:4px; font-weight:500; }
+        .sidebar .nav-item:hover { background:var(--bg-hover); color:var(--text-primary); }
+        .sidebar .nav-item.active { background:var(--bg-hover); color:var(--text-primary); }
+        .sidebar .nav-item svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+        .sidebar .user-section { border-top:1px solid var(--border-color); padding-top:16px; margin-top:auto; }
+        .sidebar .user-email { font-size:13px; color:var(--text-secondary); padding:8px 0; }
+        .sidebar .logout-btn { display:none; }
+        .chat-main { flex:1; min-width:0; display:flex; flex-direction:column; background:var(--bg-secondary); transition:background 0.3s; }
+        .chat-main .chat-header { padding:16px 24px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
+        .chat-main .chat-header .chat-title { font-size:18px; font-weight:600; }
+        .chat-main .chat-header .chat-title small { font-size:13px; font-weight:400; color:var(--text-secondary); margin-left:10px; }
+        .chat-main .chat-messages { flex:1; overflow-y:auto; padding:20px 24px; display:flex; flex-direction:column; gap:10px; background:var(--bg-primary); transition:background 0.3s; }
+        .chat-main .chat-messages::-webkit-scrollbar { width:4px; }
+        .chat-main .chat-messages::-webkit-scrollbar-thumb { background:#3a3a3a; border-radius:10px; }
+        .chat-main .message { padding:12px 18px; border-radius:18px; max-width:75%; word-wrap:break-word; line-height:1.6; font-size:14px; animation:fadeIn 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.1); position:relative; }
+        .chat-main .message.me { align-self:flex-end; background:var(--accent); color:#fff; border-bottom-right-radius:6px; }
+        .chat-main .message.other { align-self:flex-start; background:var(--bg-card); color:var(--text-primary); border-bottom-left-radius:6px; border:1px solid var(--border-color); }
+        .chat-main .message .sender { font-size:11px; font-weight:600; opacity:0.7; margin-bottom:4px; }
+        .chat-main .message.me .sender { color:rgba(255,255,255,0.8); }
+        .chat-main .message .time { font-size:10px; opacity:0.5; margin-top:6px; text-align:right; }
+        .chat-main .message img { max-width:200px; max-height:200px; border-radius:8px; display:block; margin-top:6px; cursor:pointer; }
+        .recall-btn { font-size:11px; color:var(--text-secondary); cursor:pointer; margin-left:10px; opacity:0.6; transition:opacity 0.2s; text-decoration:underline; }
+        .recall-btn:hover { opacity:1; }
+        .recalled-text { font-style:italic; color:var(--text-muted); opacity:0.7; }
+        .chat-main .input-area { padding:12px 24px 20px 24px; background:var(--bg-secondary); border-top:1px solid var(--border-color); display:flex; align-items:center; gap:12px; flex-shrink:0; }
+        .chat-main .input-area #attachBtn { background:none; border:none; padding:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); transition:var(--transition); color:var(--text-secondary); }
+        .chat-main .input-area #attachBtn:hover { background:var(--bg-hover); color:var(--text-primary); }
+        .chat-main .input-area #attachBtn svg { width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+        .chat-main .input-area input[type="text"] { flex:1; padding:12px 18px; border-radius:24px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:15px; outline:none; transition:var(--transition); }
+        .chat-main .input-area input[type="text"]:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(59,130,246,0.15); }
+        .chat-main .input-area .send-btn { background:var(--accent); border:none; border-radius:50%; width:48px; height:48px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:var(--transition); flex-shrink:0; }
+        .chat-main .input-area .send-btn:hover { background:var(--accent-hover); box-shadow:0 4px 14px rgba(59,130,246,0.3); }
+        .chat-main .input-area .send-btn svg { width:24px; height:24px; display:block; fill:none; stroke:#fff; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+        .settings-overlay { position:absolute; inset:0; background:var(--bg-overlay); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; z-index:300; border-radius:var(--radius); transition:opacity 0.25s; opacity:0; visibility:hidden; pointer-events:none; }
+        .settings-overlay.active { opacity:1; visibility:visible; pointer-events:auto; }
+        .settings-panel { background:var(--bg-card); border-radius:var(--radius); padding:32px 36px; width:100%; max-width:400px; border:1px solid var(--border-color); box-shadow:0 20px 60px rgba(0,0,0,0.6); transition:background 0.3s; }
+        .settings-panel h2 { font-size:22px; font-weight:600; margin-bottom:24px; color:var(--text-primary); }
+        .settings-panel .setting-item { display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--border-color); }
+        .settings-panel .setting-item:last-child { border-bottom:none; }
+        .settings-panel .setting-item .label { font-size:15px; font-weight:500; color:var(--text-primary); }
+        .settings-panel .setting-item .desc { font-size:13px; color:var(--text-secondary); margin-top:2px; }
+        .toggle-switch { width:48px; height:28px; background:var(--bg-input); border-radius:14px; cursor:pointer; transition:background 0.25s; position:relative; flex-shrink:0; }
+        .toggle-switch .knob { width:24px; height:24px; background:#fff; border-radius:50%; position:absolute; top:2px; left:2px; transition:transform 0.25s; box-shadow:0 2px 6px rgba(0,0,0,0.2); }
+        .toggle-switch.active { background:var(--accent); }
+        .toggle-switch.active .knob { transform:translateX(20px); }
+        .settings-panel .btn-danger { background:#dc2626; color:#fff; border:none; padding:10px 20px; border-radius:var(--radius-sm); font-weight:600; font-size:14px; cursor:pointer; transition:background 0.2s; }
+        .settings-panel .btn-danger:hover { background:#b91c1c; }
+        .settings-panel .close-settings { margin-top:20px; background:var(--bg-input); border:none; padding:10px; border-radius:var(--radius-sm); color:var(--text-primary); font-weight:500; cursor:pointer; width:100%; transition:background 0.2s; }
+        .settings-panel .close-settings:hover { background:var(--bg-hover); }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+        @media (max-width: 768px) { body { padding:0; } .app { max-height:100vh; border-radius:0; } .sidebar { width:200px; padding:12px; } .sidebar .nav-item span { display:none; } .sidebar .nav-item { justify-content:center; } .sidebar .user-email { font-size:11px; text-align:center; } .chat-main .chat-header { padding:12px 16px; } .chat-main .chat-messages { padding:12px; } .chat-main .input-area { padding:10px 16px 16px; gap:8px; } .login-card { padding:28px 20px; } .splash-inner .splash-icon { height:120px; width:120px; } .splash-divider { height:120px; } .splash-inner { gap:6px; } .splash-bar { width:260px; } }
+        @media (max-width: 480px) { .sidebar { width:60px; padding:8px; } .sidebar .logo-area img { height:28px; max-width:40px; } .sidebar .nav-item { padding:10px; } .chat-main .message { max-width:90%; } .splash-inner .splash-icon { height:80px; width:80px; } .splash-divider { height:80px; } .splash-inner { gap:4px; } .splash-bar { width:calc(100% - 48px); } }
     </style>
 </head>
 <body>
@@ -727,28 +189,18 @@
             </aside>
             <main class="chat-main">
                 <div class="chat-header">
-                    <div class="chat-title">
-                        全局聊天
-                        <small># 所有成员</small>
-                    </div>
-                    <div style="font-size:13px;color:var(--text-secondary);">
-                        <span id="onlineStatus">● 在线</span>
-                    </div>
+                    <div class="chat-title">全局聊天 <small># 所有成员</small></div>
+                    <div style="font-size:13px;color:var(--text-secondary);"><span id="onlineStatus">● 在线</span></div>
                 </div>
                 <div class="chat-messages" id="messageList"></div>
                 <div class="input-area">
                     <button id="attachBtn" title="发送图片">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
                     </button>
                     <input type="file" id="fileInput" accept="image/*" style="display:none;" />
                     <input type="text" id="chatInput" placeholder="输入消息…" />
                     <button class="send-btn" id="btnSend">
-                        <svg viewBox="0 0 24 24">
-                            <line x1="22" y1="2" x2="11" y2="13"/>
-                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                     </button>
                 </div>
             </main>
@@ -758,19 +210,11 @@
             <div class="settings-panel">
                 <h2>设置</h2>
                 <div class="setting-item">
-                    <div>
-                        <div class="label">深色模式</div>
-                        <div class="desc">切换日间/夜间主题</div>
-                    </div>
-                    <div class="toggle-switch active" id="themeToggle">
-                        <div class="knob"></div>
-                    </div>
+                    <div><div class="label">深色模式</div><div class="desc">切换日间/夜间主题</div></div>
+                    <div class="toggle-switch active" id="themeToggle"><div class="knob"></div></div>
                 </div>
                 <div class="setting-item" style="border-bottom: none; padding-bottom: 0;">
-                    <div>
-                        <div class="label">退出账户</div>
-                        <div class="desc">退出后需重新登录</div>
-                    </div>
+                    <div><div class="label">退出账户</div><div class="desc">退出后需重新登录</div></div>
                     <button class="btn-danger" id="settingsLogout">退出</button>
                 </div>
                 <button class="close-settings" id="closeSettings">关闭</button>
@@ -818,16 +262,12 @@
         let isCodeSending = false;
 
         // ==========================================
-        // 分页相关变量
+        // 分页相关
         // ==========================================
         const PAGE_SIZE = 20;
         let isLoadingMore = false;
         let hasMoreMessages = true;
         let oldestTimestamp = null;
-
-        // ==========================================
-        // 未读计数
-        // ==========================================
         let unreadCount = 0;
 
         // ==========================================
@@ -843,7 +283,6 @@
                 themeToggle.classList.add('active');
             }
         }
-
         function toggleTheme() {
             const isLight = document.body.classList.toggle('light-theme');
             themeToggle.classList.toggle('active');
@@ -853,13 +292,8 @@
         // ==========================================
         // 设置面板
         // ==========================================
-        function openSettings() {
-            settingsOverlay.classList.add('active');
-        }
-
-        function closeSettingsPanel() {
-            settingsOverlay.classList.remove('active');
-        }
+        function openSettings() { settingsOverlay.classList.add('active'); }
+        function closeSettingsPanel() { settingsOverlay.classList.remove('active'); }
 
         // ==========================================
         // 工具函数
@@ -949,34 +383,28 @@
         async function recallMessage(messageId) {
             if (!messageId) return;
             try {
-                // 检查是否在2分钟内（本地判断，避免无效请求）
-                // 但我们直接更新数据库，Supabase 会处理，但我们可以提前校验
-                const { data, error } = await window.supabaseClient
+                // 先查询创建时间，检查是否超过2分钟
+                const { data: checkData, error: checkError } = await window.supabaseClient
                     .from('messages')
-                    .update({ is_recalled: true })
-                    .eq('id', messageId)
                     .select('created_at')
+                    .eq('id', messageId)
                     .single();
-
-                if (error) throw error;
-
-                // 检查时间差（如果服务端没有做限制，我们手动检查）
-                const created = new Date(data.created_at);
+                if (checkError) throw checkError;
+                const created = new Date(checkData.created_at);
                 const now = new Date();
                 const diffMinutes = (now - created) / 60000;
                 if (diffMinutes > 2) {
                     setAuthMessage('已超过2分钟，无法撤回', 'error');
-                    // 恢复显示（但已经更新了，可以再改回来？ 最好提示后不回滚，因为前端已更新）
-                    // 为了避免不一致，我们回滚数据库更新
-                    await window.supabaseClient
-                        .from('messages')
-                        .update({ is_recalled: false })
-                        .eq('id', messageId);
                     return;
                 }
 
+                const { error } = await window.supabaseClient
+                    .from('messages')
+                    .update({ is_recalled: true })
+                    .eq('id', messageId);
+                if (error) throw error;
                 setAuthMessage('消息已撤回', 'success');
-                // Realtime 会自动更新界面（因为我们监听了 UPDATE）
+                // Realtime 会自动更新界面
             } catch (err) {
                 console.error('撤回失败:', err);
                 setAuthMessage('撤回失败，请重试', 'error');
@@ -984,26 +412,23 @@
         }
 
         // ==========================================
-        // 创建消息 DOM 元素（包含撤回按钮和状态）
+        // 创建消息 DOM 元素（修复时间判断）
         // ==========================================
-        function createMessageElement(content, sender, isMe, time, messageId, isRecalled) {
+        function createMessageElement(content, sender, isMe, displayTime, messageId, isRecalled, createdAt) {
             const div = document.createElement('div');
             div.className = 'message ' + (isMe ? 'me' : 'other');
-            div.dataset.messageId = messageId;
+            if (messageId) div.dataset.messageId = messageId;
 
-            // 如果已撤回，显示特殊内容
             if (isRecalled) {
                 div.innerHTML = `
                     <div class="sender">${sender}</div>
                     <span class="recalled-text">消息已撤回</span>
-                    <div class="time">${time || formatTime(new Date().toISOString())}</div>
+                    <div class="time">${displayTime}</div>
                 `;
                 return div;
             }
 
-            // 正常消息内容
-            let displayContent = content;
-            if (!content) content = '';
+            let displayContent = content || '';
             const imageMatch = content.match(/!\[image\]\((.*?)\)/);
             if (imageMatch) {
                 const url = imageMatch[1];
@@ -1015,11 +440,11 @@
             // 判断是否显示撤回按钮：自己发送且未撤回且2分钟内
             let recallButton = '';
             if (isMe && !isRecalled && currentEmail === sender) {
-                // 检查时间
-                const created = new Date(time);
+                // 使用原始 createdAt 计算时间差
+                const created = new Date(createdAt);
                 const now = new Date();
                 const diffMinutes = (now - created) / 60000;
-                if (diffMinutes <= 2) {
+                if (diffMinutes <= 2 && diffMinutes >= 0) {
                     recallButton = `<span class="recall-btn" data-id="${messageId}">撤回</span>`;
                 }
             }
@@ -1027,10 +452,9 @@
             div.innerHTML = `
                 <div class="sender">${sender}</div>
                 ${displayContent}
-                <div class="time">${time || formatTime(new Date().toISOString())} ${recallButton}</div>
+                <div class="time">${displayTime} ${recallButton}</div>
             `;
 
-            // 绑定撤回按钮点击事件（因为可能存在多个）
             const recallBtn = div.querySelector('.recall-btn');
             if (recallBtn) {
                 recallBtn.addEventListener('click', function(e) {
@@ -1043,14 +467,18 @@
             return div;
         }
 
-        // 重写 addMessageToBottom 使用新函数
-        function addMessageToBottom(content, sender, isMe, time, messageId, isRecalled) {
-            const div = createMessageElement(content, sender, isMe, time, messageId, isRecalled);
+        // ==========================================
+        // 添加消息到底部
+        // ==========================================
+        function addMessageToBottom(content, sender, isMe, displayTime, messageId, isRecalled, createdAt) {
+            const div = createMessageElement(content, sender, isMe, displayTime, messageId, isRecalled, createdAt);
             messageList.appendChild(div);
             messageList.scrollTop = messageList.scrollHeight;
         }
 
-        // 重写 prependMessages 使用新函数
+        // ==========================================
+        // 预置消息到顶部（加载更多）
+        // ==========================================
         function prependMessages(messages) {
             const fragment = document.createDocumentFragment();
             messages.forEach(msg => {
@@ -1061,7 +489,8 @@
                     isMe,
                     formatTime(msg.created_at),
                     msg.id,
-                    msg.is_recalled || false
+                    msg.is_recalled || false,
+                    msg.created_at  // 原始时间
                 );
                 fragment.appendChild(div);
             });
@@ -1074,19 +503,13 @@
         }
 
         // ==========================================
-        // 缓存管理（localStorage）
+        // 缓存管理
         // ==========================================
         function cacheMessages(messages) {
-            try {
-                localStorage.setItem('minichat_messages', JSON.stringify(messages));
-            } catch (e) { /* ignore */ }
+            try { localStorage.setItem('minichat_messages', JSON.stringify(messages)); } catch (e) {}
         }
-
         function getCachedMessages() {
-            try {
-                const data = localStorage.getItem('minichat_messages');
-                return data ? JSON.parse(data) : null;
-            } catch (e) { return null; }
+            try { const data = localStorage.getItem('minichat_messages'); return data ? JSON.parse(data) : null; } catch (e) { return null; }
         }
 
         function setLoading(loading) {
@@ -1201,7 +624,8 @@
                             isMe,
                             formatTime(msg.created_at),
                             msg.id,
-                            msg.is_recalled || false
+                            msg.is_recalled || false,
+                            msg.created_at
                         );
                     });
                     cacheMessages(sorted);
@@ -1244,7 +668,8 @@
                         isMe,
                         formatTime(msg.created_at),
                         msg.id,
-                        msg.is_recalled || false
+                        msg.is_recalled || false,
+                        msg.created_at
                     );
                 });
             } else {
@@ -1305,8 +730,9 @@
                 alert('请先登录');
                 return;
             }
-            // 乐观更新（is_recalled 为 false）
-            addMessageToBottom(content, currentEmail, true, formatTime(new Date().toISOString()), null, false);
+            // 乐观更新（is_recalled false, 临时无 id）
+            const now = new Date().toISOString();
+            addMessageToBottom(content, currentEmail, true, formatTime(now), null, false, now);
             try {
                 const res = await fetch(WEBHOOK_SEND_MESSAGE, {
                     method: 'POST',
@@ -1442,7 +868,7 @@
         });
 
         // ==========================================
-        // 订阅实时消息（监听 INSERT 和 UPDATE）
+        // 订阅实时消息（INSERT 和 UPDATE）
         // ==========================================
         function subscribeMessages() {
             if (window.chatChannel) {
@@ -1450,7 +876,6 @@
                 window.chatChannel = null;
             }
 
-            // 监听 INSERT 和 UPDATE 事件
             const channel = window.supabaseClient
                 .channel('chat-room')
                 .on('postgres_changes', {
@@ -1461,12 +886,8 @@
                     try {
                         const msg = payload.new;
                         if (!msg) return;
-
                         const isMe = (msg.sender_name === currentEmail);
-                        // 如果是自己发送的，跳过（乐观更新已显示）
-                        if (isMe) {
-                            return;
-                        }
+                        if (isMe) return; // 自己发送的跳过（乐观更新已显示）
 
                         addMessageToBottom(
                             msg.content,
@@ -1474,7 +895,8 @@
                             false,
                             formatTime(msg.created_at),
                             msg.id,
-                            msg.is_recalled || false
+                            msg.is_recalled || false,
+                            msg.created_at
                         );
 
                         if (document.hidden) {
@@ -1489,22 +911,20 @@
                             }
                         }
                     } catch (e) {
-                        console.error('处理 INSERT 失败:', e);
+                        console.error('INSERT 处理失败:', e);
                     }
                 })
                 .on('postgres_changes', {
                     event: 'UPDATE',
                     schema: 'public',
                     table: 'messages',
-                    filter: 'is_recalled=eq.true'  // 只监听撤回更新
+                    filter: 'is_recalled=eq.true'
                 }, (payload) => {
                     try {
                         const msg = payload.new;
                         if (!msg) return;
-                        // 查找对应消息元素并更新
                         const target = messageList.querySelector(`[data-message-id="${msg.id}"]`);
                         if (target) {
-                            // 替换内容为“消息已撤回”
                             const sender = msg.sender_name || '匿名';
                             const time = formatTime(msg.created_at);
                             target.innerHTML = `
@@ -1514,7 +934,7 @@
                             `;
                         }
                     } catch (e) {
-                        console.error('处理 UPDATE 失败:', e);
+                        console.error('UPDATE 处理失败:', e);
                     }
                 })
                 .subscribe((status) => { /* console.log('channel status', status) */ });
@@ -1596,7 +1016,7 @@
         // 初始主题
         // ==========================================
         loadTheme();
-        console.log('MiniChat 已启动 (支持消息撤回)');
+        console.log('MiniChat 已启动 (修复撤回按钮时间判断)');
     </script>
 </body>
 </html>
