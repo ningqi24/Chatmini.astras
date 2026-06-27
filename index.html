@@ -9,7 +9,7 @@
     </script>
 
     <style>
-        /* ===== 样式（与之前相同，略） ===== */
+        /* ===== 全局样式（与之前相同，略） ===== */
         * {
             margin: 0;
             padding: 0;
@@ -353,27 +353,147 @@
             if (type === 'error') authMessage.classList.add('error');
         }
 
+        // 新增：图片预览与下载
+        window.previewImage = function(url) {
+            // 创建遮罩
+            const overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.backgroundColor = 'rgba(0,0,0,0.85)';
+            overlay.style.display = 'flex';
+            overlay.style.flexDirection = 'column';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.zIndex = '9999';
+            overlay.style.padding = '20px';
+            overlay.style.boxSizing = 'border-box';
+            overlay.style.touchAction = 'manipulation';
+
+            // 图片
+            const img = document.createElement('img');
+            img.src = url;
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '70%';
+            img.style.objectFit = 'contain';
+            img.style.borderRadius = '12px';
+            img.style.marginBottom = '20px';
+            img.style.boxShadow = '0 10px 40px rgba(0,0,0,0.6)';
+
+            // 按钮容器
+            const btnContainer = document.createElement('div');
+            btnContainer.style.display = 'flex';
+            btnContainer.style.gap = '15px';
+            btnContainer.style.flexWrap = 'wrap';
+            btnContainer.style.justifyContent = 'center';
+
+            // 下载按钮
+            const downloadBtn = document.createElement('button');
+            downloadBtn.textContent = '⬇️ 下载图片';
+            downloadBtn.style.padding = '14px 28px';
+            downloadBtn.style.border = 'none';
+            downloadBtn.style.borderRadius = '12px';
+            downloadBtn.style.backgroundColor = '#6c5ce7';
+            downloadBtn.style.color = '#fff';
+            downloadBtn.style.fontSize = '16px';
+            downloadBtn.style.fontWeight = '600';
+            downloadBtn.style.cursor = 'pointer';
+            downloadBtn.style.touchAction = 'manipulation';
+            downloadBtn.style.boxShadow = '0 4px 15px rgba(108,92,231,0.4)';
+            downloadBtn.onclick = function(e) {
+                e.stopPropagation();
+                downloadBtn.textContent = '⏳ 下载中...';
+                downloadBtn.disabled = true;
+                fetch(url)
+                    .then(res => {
+                        if (!res.ok) throw new Error('下载失败');
+                        return res.blob();
+                    })
+                    .then(blob => {
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        // 从URL提取文件名
+                        const filename = url.split('/').pop().split('?')[0] || 'image.jpg';
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        URL.revokeObjectURL(a.href);
+                        downloadBtn.textContent = '✅ 已下载';
+                        setTimeout(() => {
+                            downloadBtn.textContent = '⬇️ 下载图片';
+                            downloadBtn.disabled = false;
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('下载失败:', err);
+                        downloadBtn.textContent = '❌ 下载失败';
+                        setTimeout(() => {
+                            downloadBtn.textContent = '⬇️ 下载图片';
+                            downloadBtn.disabled = false;
+                        }, 2000);
+                    });
+            };
+
+            // 关闭按钮
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = '✕ 关闭';
+            closeBtn.style.padding = '14px 28px';
+            closeBtn.style.border = 'none';
+            closeBtn.style.borderRadius = '12px';
+            closeBtn.style.backgroundColor = 'rgba(255,255,255,0.15)';
+            closeBtn.style.color = '#fff';
+            closeBtn.style.fontSize = '16px';
+            closeBtn.style.fontWeight = '600';
+            closeBtn.style.cursor = 'pointer';
+            closeBtn.style.touchAction = 'manipulation';
+            closeBtn.onclick = function(e) {
+                e.stopPropagation();
+                document.body.removeChild(overlay);
+            };
+
+            btnContainer.appendChild(downloadBtn);
+            btnContainer.appendChild(closeBtn);
+
+            // 点击背景关闭
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) {
+                    document.body.removeChild(overlay);
+                }
+            });
+
+            overlay.appendChild(img);
+            overlay.appendChild(btnContainer);
+            document.body.appendChild(overlay);
+        };
+
+        // 添加消息函数（含图片点击预览）
         function addMessage(content, sender, isMe, time) {
-    const div = document.createElement('div');
-    div.className = 'message ' + (isMe ? 'me' : 'other');
+            const div = document.createElement('div');
+            div.className = 'message ' + (isMe ? 'me' : 'other');
 
-    // 处理空内容
-    if (!content) content = '';
+            // 处理空内容
+            if (!content) content = '';
 
-    // 检测是否为图片消息
-    const imageMatch = content.match(/!\[image\]\((.*?)\)/);
-    let displayContent = content;
-    if (imageMatch) {
-        displayContent = `<img src="${imageMatch[1]}" alt="图片" loading="lazy" />`;
-    } else {
-        displayContent = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
+            // 检测是否为图片消息
+            const imageMatch = content.match(/!\[image\]\((.*?)\)/);
+            let displayContent = content;
+            if (imageMatch) {
+                const url = imageMatch[1];
+                displayContent =
+                    `<img src="${url}" data-url="${url}" onclick="window.previewImage && window.previewImage('${url}')" alt="图片" loading="lazy" />`;
+            } else {
+                displayContent = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
 
-    div.innerHTML = '<div class="sender">' + sender + '</div>' + displayContent +
-        '<div class="time">' + (time || formatTime(new Date().toISOString())) + '</div>';
-    messageList.appendChild(div);
-    messageList.scrollTop = messageList.scrollHeight;
-}
+            div.innerHTML = '<div class="sender">' + sender + '</div>' + displayContent +
+                '<div class="time">' + (time || formatTime(new Date().toISOString())) + '</div>';
+            messageList.appendChild(div);
+            messageList.scrollTop = messageList.scrollHeight;
+        }
+
         function setLoading(loading) {
             btnSendCode.disabled = loading;
             btnLogin.disabled = loading;
@@ -483,14 +603,13 @@
         };
 
         // ==========================================
-        // 9. 发送消息核心函数（支持自定义内容）
+        // 9. 发送消息核心函数
         // ==========================================
         async function sendMessageContent(content) {
             if (!currentEmail) {
                 alert('请先登录');
                 return;
             }
-            // 乐观更新
             addMessage(content, '我', true);
 
             try {
@@ -500,7 +619,6 @@
                     body: JSON.stringify({ content, sender_name: currentEmail })
                 });
                 if (!res.ok) throw new Error('发送失败');
-                // 清空输入框（仅在文本消息时清空，图片已在 upload 中清空）
                 if (chatInput.value) chatInput.value = '';
             } catch (err) {
                 console.error(err);
@@ -513,7 +631,7 @@
         }
 
         // ==========================================
-        // 10. 发送文本消息（按钮/回车触发）
+        // 10. 发送文本消息
         // ==========================================
         window.sendMessageHandler = async function() {
             const content = chatInput.value.trim();
@@ -527,20 +645,18 @@
         fileInput.addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (!file) return;
-            // 检查文件类型
             if (!file.type.startsWith('image/')) {
                 setAuthMessage('请选择图片文件', 'error');
                 fileInput.value = '';
                 return;
             }
-            // 限制大小（例如 5MB）
-            if (file.size > 5 * 1024 * 1024) {
-                setAuthMessage('图片不能超过 5MB', 'error');
+            if (file.size > 20 * 1024 * 1024) {
+                setAuthMessage('图片不能超过 20MB', 'error');
                 fileInput.value = '';
                 return;
             }
 
-            // 显示上传中提示（临时消息）
+            // 显示上传中
             const tempId = 'uploading_' + Date.now();
             const tempDiv = document.createElement('div');
             tempDiv.id = tempId;
@@ -550,12 +666,10 @@
             messageList.scrollTop = messageList.scrollHeight;
 
             try {
-                // 生成唯一文件名
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
                 const filePath = `public/${fileName}`;
 
-                // 上传到 Supabase Storage
                 const { data, error } = await window.supabaseClient.storage
                     .from('chat-images')
                     .upload(filePath, file, {
@@ -565,22 +679,18 @@
 
                 if (error) throw error;
 
-                // 获取公开 URL
                 const { data: urlData } = window.supabaseClient.storage
                     .from('chat-images')
                     .getPublicUrl(filePath);
                 const publicURL = urlData.publicUrl;
 
-                // 移除临时提示
                 const tempEl = document.getElementById(tempId);
                 if (tempEl) tempEl.remove();
 
-                // 发送图片消息
                 const content = `![image](${publicURL})`;
                 await sendMessageContent(content);
             } catch (err) {
                 console.error('上传失败:', err);
-                // 移除临时提示
                 const tempEl = document.getElementById(tempId);
                 if (tempEl) tempEl.remove();
                 setAuthMessage('❌ 图片上传失败，请重试', 'error');
