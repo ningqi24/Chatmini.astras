@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js">
     </script>
     <style>
-        /* ===== 全局重置 & 双主题变量（与原来完全相同） ===== */
+        /* ===== 全局重置 & 双主题变量 ===== */
         :root {
             --bg-primary: #0d0d0d;
             --bg-secondary: #1a1a1a;
@@ -127,7 +127,7 @@
             from { width: 0%; }
             to { width: 100%; }
         }
-        /* ===== 登录界面（新：邮箱+密码） ===== */
+        /* ===== 登录界面 ===== */
         .login-overlay {
             position: absolute;
             inset: 0;
@@ -256,7 +256,7 @@
             cursor: pointer;
             font-size: 14px;
         }
-        /* ===== 主界面、聊天区、设置面板（与原来完全一致） ===== */
+        /* ===== 主界面 ===== */
         .main-interface {
             display: flex;
             width: 100%;
@@ -331,9 +331,7 @@
             font-size: 13px;
             color: var(--text-secondary);
             padding: 8px 0;
-        }
-        .sidebar .logout-btn {
-            display: none;
+            word-break: break-all;
         }
         .chat-main {
             flex: 1;
@@ -504,6 +502,7 @@
             stroke-linecap: round;
             stroke-linejoin: round;
         }
+        /* ===== 设置面板 ===== */
         .settings-overlay {
             position: absolute;
             inset: 0;
@@ -559,6 +558,49 @@
             font-size: 13px;
             color: var(--text-secondary);
             margin-top: 2px;
+        }
+        /* 昵称修改行特殊样式 */
+        .settings-panel .setting-item.nickname-item {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+        .settings-panel .nickname-row {
+            display: flex;
+            gap: 8px;
+        }
+        .settings-panel .nickname-row input {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+        }
+        .settings-panel .nickname-row input:focus {
+            border-color: var(--accent);
+        }
+        .settings-panel .nickname-row .btn-save {
+            padding: 10px 20px;
+            background: var(--accent);
+            border: none;
+            border-radius: var(--radius-sm);
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+        .settings-panel .nickname-row .btn-save:hover {
+            background: var(--accent-hover);
+        }
+        .settings-panel .nickname-msg {
+            font-size: 12px;
+            color: var(--text-secondary);
+            min-height: 18px;
         }
         .toggle-switch {
             width: 48px;
@@ -672,7 +714,7 @@
             </div>
         </div>
 
-        <!-- 登录界面（邮箱 + 密码） -->
+        <!-- 登录界面 -->
         <div class="login-overlay" id="loginOverlay">
             <div class="login-card">
                 <div class="logo-area">
@@ -748,6 +790,7 @@
         <div class="settings-overlay" id="settingsOverlay">
             <div class="settings-panel">
                 <h2>设置</h2>
+                <!-- 深色模式 -->
                 <div class="setting-item">
                     <div>
                         <div class="label">深色模式</div>
@@ -757,6 +800,19 @@
                         <div class="knob"></div>
                     </div>
                 </div>
+                <!-- 昵称修改 -->
+                <div class="setting-item nickname-item">
+                    <div>
+                        <div class="label">显示昵称</div>
+                        <div class="desc">其他成员将看到这个名字</div>
+                    </div>
+                    <div class="nickname-row">
+                        <input type="text" id="displayNameInput" placeholder="输入昵称" maxlength="20" />
+                        <button class="btn-save" id="saveDisplayName">保存</button>
+                    </div>
+                    <div class="nickname-msg" id="displayNameMessage"></div>
+                </div>
+                <!-- 退出账户 -->
                 <div class="setting-item" style="border-bottom: none; padding-bottom: 0;">
                     <div>
                         <div class="label">退出账户</div>
@@ -777,22 +833,14 @@
         const SUPABASE_ANON_KEY =
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhndWdsdGl1c3pycG1ieGptcWZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0ODE2MTUsImV4cCI6MjA5ODA1NzYxNX0.nWiJm_7Fh3-6MUdazhW7CwOAi8w2PVMsDbfhUNyUIsM';
 
-        // ✅ 直接使用全局 supabase（由 CDN 提供），不要重新声明
-        // 如果 supabase 未定义，才初始化（但 CDN 加载后一定存在）
+        // 如果 supabase 未定义，才初始化
         if (typeof supabase === 'undefined') {
             window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         } else {
-            // 已经存在，则初始化（但通常 CDN 会直接暴露 supabase 对象，不用再调用 createClient）
-            // 但为了保险，检查 supabase 是否已配置
             if (!supabase.auth) {
-                // 可能用户自己改过，重新初始化
                 window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             }
         }
-
-        // 为了代码清晰，我们使用 client 变量指向全局 supabase（但不重新声明）
-        // 注意：不要用 const，直接用 var 或直接使用 supabase
-        // 我们直接使用 supabase 全局变量即可
 
         // ==========================================
         // DOM 引用
@@ -818,10 +866,14 @@
         const settingsLogout = document.getElementById('settingsLogout');
         const closeSettings = document.getElementById('closeSettings');
         const settingsNav = document.getElementById('settingsNav');
+        const displayNameInput = document.getElementById('displayNameInput');
+        const saveDisplayNameBtn = document.getElementById('saveDisplayName');
+        const displayNameMessage = document.getElementById('displayNameMessage');
 
         let currentEmail = '';
         let currentUserId = '';
-        let isLoginMode = true; // true=登录, false=注册
+        let currentDisplayName = '';   // 当前用户的昵称
+        let isLoginMode = true;        // true=登录, false=注册
 
         // ==========================================
         // 分页相关变量
@@ -837,7 +889,7 @@
         let unreadCount = 0;
 
         // ==========================================
-        // 主题管理（与原来相同）
+        // 主题管理
         // ==========================================
         function loadTheme() {
             const saved = localStorage.getItem('minichat_theme');
@@ -976,7 +1028,7 @@
         function prependMessages(messages) {
             const fragment = document.createDocumentFragment();
             messages.forEach(msg => {
-                const isMe = (msg.sender_name === currentEmail);
+                const isMe = (msg.sender_name === currentDisplayName);
                 const div = createMessageElement(msg.content, msg.sender_name || '匿名', isMe, formatTime(msg.created_at));
                 fragment.appendChild(div);
             });
@@ -1007,7 +1059,7 @@
         }
 
         // ==========================================
-        // 认证逻辑（使用全局 supabase）
+        // 认证逻辑
         // ==========================================
         function switchMode(mode) {
             isLoginMode = (mode === 'login');
@@ -1029,68 +1081,70 @@
             setAuthMessage('');
         }
 
-async function handleAuth() {
-    const email = authEmail.value.trim();
-    const password = authPassword.value.trim();
-    if (!email || !password) {
-        setAuthMessage('请填写邮箱和密码', 'error');
-        return;
-    }
-    if (password.length < 6) {
-        setAuthMessage('密码至少6位', 'error');
-        return;
-    }
-    setLoading(true);
-    setAuthMessage('处理中…', '');
-
-    try {
-        let result;
-        if (isLoginMode) {
-            result = await supabase.auth.signInWithPassword({ email, password });
-        } else {
-            result = await supabase.auth.signUp({ email, password });
-        }
-
-        // ✅ 错误处理放在这里，result 已经定义了
-        if (result.error) {
-            if (result.error.message.includes('Email not confirmed')) {
-                setAuthMessage('请先验证邮箱后再登录', 'error');
-            } else {
-                setAuthMessage(result.error.message, 'error');
+        async function handleAuth() {
+            const email = authEmail.value.trim();
+            const password = authPassword.value.trim();
+            if (!email || !password) {
+                setAuthMessage('请填写邮箱和密码', 'error');
+                return;
             }
-            setLoading(false);
-            return;
+            if (password.length < 6) {
+                setAuthMessage('密码至少6位', 'error');
+                return;
+            }
+            setLoading(true);
+            setAuthMessage('处理中…', '');
+
+            try {
+                let result;
+                if (isLoginMode) {
+                    result = await supabase.auth.signInWithPassword({ email, password });
+                } else {
+                    result = await supabase.auth.signUp({ email, password });
+                }
+
+                if (result.error) {
+                    if (result.error.message.includes('Email not confirmed')) {
+                        setAuthMessage('请先验证邮箱后再登录', 'error');
+                    } else {
+                        setAuthMessage(result.error.message, 'error');
+                    }
+                    setLoading(false);
+                    return;
+                }
+
+                const user = result.data.user;
+                if (!user) {
+                    setAuthMessage('未获取到用户信息', 'error');
+                    setLoading(false);
+                    return;
+                }
+
+                currentEmail = user.email;
+                currentUserId = user.id;
+
+                await ensureProfile(user.id, user.email);
+
+                if (isLoginMode) {
+                    setAuthMessage('登录成功', 'success');
+                    setLoading(false);
+                    enterChat();
+                } else {
+                    setAuthMessage('注册成功！请查收邮件并点击确认链接后登录。', 'success');
+                    setLoading(false);
+                    // 不调用 enterChat()
+                }
+
+            } catch (err) {
+                console.error(err);
+                setAuthMessage('网络错误，请重试', 'error');
+                setLoading(false);
+            }
         }
 
-        const user = result.data.user;
-        if (!user) {
-            setAuthMessage('未获取到用户信息', 'error');
-            setLoading(false);
-            return;
-        }
-
-        currentEmail = user.email;
-        currentUserId = user.id;
-
-        await ensureProfile(user.id, user.email);
-
-        if (isLoginMode) {
-            setAuthMessage('登录成功', 'success');
-            setLoading(false);
-            enterChat();
-        } else {
-            setAuthMessage('注册成功！请查收邮件并点击确认链接后登录。', 'success');
-            setLoading(false);
-            // 不调用 enterChat()，等待用户验证邮箱
-        }
-
-    } catch (err) {
-        console.error(err);
-        setAuthMessage('网络错误，请重试', 'error');
-        setLoading(false);
-    }
-}
-
+        // ==========================================
+        // 确保 profiles 存在（含默认昵称）
+        // ==========================================
         async function ensureProfile(userId, email) {
             const { data, error } = await supabase
                 .from('profiles')
@@ -1102,9 +1156,16 @@ async function handleAuth() {
                 return;
             }
             if (!data) {
+                // 新建用户，设置默认昵称（邮箱前缀）
+                const defaultName = email.split('@')[0];
                 const { error: insertError } = await supabase
                     .from('profiles')
-                    .insert({ id: userId, email: email, last_login: new Date().toISOString() });
+                    .insert({ 
+                        id: userId, 
+                        email: email, 
+                        last_login: new Date().toISOString(),
+                        display_name: defaultName 
+                    });
                 if (insertError) {
                     console.error('插入 profiles 失败:', insertError);
                 }
@@ -1118,7 +1179,82 @@ async function handleAuth() {
         }
 
         // ==========================================
-        // 分页加载历史消息（直接从 Supabase 查）
+        // 昵称管理函数
+        // ==========================================
+        async function loadDisplayName() {
+            if (!currentUserId) return;
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('display_name')
+                    .eq('id', currentUserId)
+                    .single();
+                if (error) throw error;
+                if (data && data.display_name) {
+                    currentDisplayName = data.display_name;
+                    displayNameInput.value = data.display_name;
+                    sidebarUserEmail.textContent = data.display_name;
+                } else {
+                    // 如果没有昵称，用邮箱前缀
+                    const fallback = currentEmail.split('@')[0];
+                    currentDisplayName = fallback;
+                    displayNameInput.value = fallback;
+                    sidebarUserEmail.textContent = fallback;
+                }
+            } catch (err) {
+                console.error('加载昵称失败:', err);
+                // 降级：用邮箱前缀
+                const fallback = currentEmail.split('@')[0];
+                currentDisplayName = fallback;
+                displayNameInput.value = fallback;
+                sidebarUserEmail.textContent = fallback;
+            }
+        }
+
+        async function saveDisplayName() {
+            const newName = displayNameInput.value.trim();
+            if (!newName) {
+                displayNameMessage.textContent = '昵称不能为空';
+                displayNameMessage.style.color = '#f87171';
+                return;
+            }
+            if (newName.length > 20) {
+                displayNameMessage.textContent = '昵称不能超过20个字符';
+                displayNameMessage.style.color = '#f87171';
+                return;
+            }
+
+            displayNameMessage.textContent = '保存中…';
+            displayNameMessage.style.color = 'var(--text-secondary)';
+
+            try {
+                const { error } = await supabase
+                    .from('profiles')
+                    .update({ display_name: newName })
+                    .eq('id', currentUserId);
+                if (error) throw error;
+                currentDisplayName = newName;
+                displayNameMessage.textContent = '✅ 昵称已更新';
+                displayNameMessage.style.color = '#4ade80';
+                sidebarUserEmail.textContent = newName;
+                // 刷新消息列表以更新发送者名称
+                refreshMessages();
+            } catch (err) {
+                console.error('保存昵称失败:', err);
+                displayNameMessage.textContent = '保存失败，请重试';
+                displayNameMessage.style.color = '#f87171';
+            }
+        }
+
+        async function refreshMessages() {
+            messageList.innerHTML = '';
+            hasMoreMessages = true;
+            oldestTimestamp = null;
+            await loadHistory(false);
+        }
+
+        // ==========================================
+        // 分页加载历史消息
         // ==========================================
         async function loadHistory(append = false) {
             if (isLoadingMore || !hasMoreMessages) return;
@@ -1151,7 +1287,7 @@ async function handleAuth() {
                 if (!append) {
                     messageList.innerHTML = '';
                     sorted.forEach(msg => {
-                        const isMe = (msg.sender_name === currentEmail);
+                        const isMe = (msg.sender_name === currentDisplayName);
                         addMessageToBottom(msg.content, msg.sender_name || '匿名', isMe, formatTime(msg.created_at));
                     });
                     cacheMessages(sorted);
@@ -1175,6 +1311,7 @@ async function handleAuth() {
         function enterChat() {
             loginOverlay.classList.add('hidden');
             mainInterface.classList.remove('hidden');
+            // 先显示邮箱，等加载昵称后替换
             sidebarUserEmail.textContent = currentEmail;
 
             hasMoreMessages = true;
@@ -1183,17 +1320,25 @@ async function handleAuth() {
             unreadCount = 0;
             document.title = 'MiniChat';
 
+            // 加载昵称（异步）
+            loadDisplayName().then(() => {
+                // 昵称加载完成后，重新加载消息列表，使用昵称
+                refreshMessages();
+            });
+
+            // 先显示缓存消息（使用邮箱判断，但后面会被刷新）
             const cached = getCachedMessages();
             if (cached && cached.length > 0) {
                 messageList.innerHTML = '';
                 cached.forEach(msg => {
-                    const isMe = (msg.sender_name === currentEmail);
+                    const isMe = (msg.sender_name === currentEmail); // 临时用邮箱
                     addMessageToBottom(msg.content, msg.sender_name || '匿名', isMe, formatTime(msg.created_at));
                 });
             } else {
                 messageList.innerHTML = '';
             }
 
+            // 加载历史（第一次）
             loadHistory(false);
 
             localStorage.setItem('minichat_user', JSON.stringify({ email: currentEmail, id: currentUserId }));
@@ -1225,6 +1370,7 @@ async function handleAuth() {
             }
             currentEmail = '';
             currentUserId = '';
+            currentDisplayName = '';
             mainInterface.classList.add('hidden');
             loginOverlay.classList.remove('hidden');
             authMessage.textContent = '';
@@ -1237,19 +1383,22 @@ async function handleAuth() {
         }
 
         // ==========================================
-        // 发送消息（直连 Supabase）
+        // 发送消息（使用昵称）
         // ==========================================
         async function sendMessageContent(content) {
             if (!currentEmail) {
                 alert('请先登录');
                 return;
             }
-            addMessageToBottom(content, currentEmail, true);
+
+            // 使用当前昵称发送
+            const senderName = currentDisplayName || currentEmail.split('@')[0];
+            addMessageToBottom(content, senderName, true);
 
             try {
                 const { error } = await supabase
                     .from('messages')
-                    .insert({ content: content, sender_name: currentEmail });
+                    .insert({ content: content, sender_name: senderName });
                 if (error) throw error;
                 if (chatInput.value) chatInput.value = '';
             } catch (err) {
@@ -1390,7 +1539,7 @@ async function handleAuth() {
                     try {
                         const msg = payload.new;
                         if (!msg) return;
-                        const isMe = (msg.sender_name === currentEmail);
+                        const isMe = (msg.sender_name === currentDisplayName);
                         if (isMe) return;
                         addMessageToBottom(msg.content, msg.sender_name || '匿名', false, formatTime(msg.created_at));
 
@@ -1458,8 +1607,17 @@ async function handleAuth() {
         if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
         if (settingsLogout) settingsLogout.addEventListener('click', handleLogout);
 
+        // 昵称保存事件
+        saveDisplayNameBtn.addEventListener('click', saveDisplayName);
+        displayNameInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveDisplayName();
+            }
+        });
+
         // ==========================================
-        // Splash 控制（先显示登录界面，再尝试恢复）
+        // Splash 控制
         // ==========================================
         (function() {
             const SPLASH_DURATION = 2600;
@@ -1473,10 +1631,8 @@ async function handleAuth() {
                     if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
                 }, 420);
                 
-                // ★ 先确保登录界面显示（防止空白）
                 loginOverlay.classList.remove('hidden');
                 
-                // 然后尝试恢复 session（静默处理）
                 const raw = localStorage.getItem('minichat_user');
                 if (raw) {
                     try {
@@ -1484,20 +1640,15 @@ async function handleAuth() {
                         if (u && u.email) {
                             currentEmail = u.email;
                             currentUserId = u.id || '';
-                            // 异步检查 session，有效则自动进入聊天
                             supabase.auth.getSession().then(({ data, error }) => {
                                 if (data.session) {
-                                    enterChat(); // 会隐藏登录界面并显示主界面
+                                    enterChat();
                                 }
-                                // 如果 session 无效，什么都不做，保留登录界面
-                            }).catch(() => {
-                                // 出错也什么都不做，保留登录界面
-                            });
+                            }).catch(() => {});
                             return;
                         }
                     } catch (e) { /* ignore */ }
                 }
-                // 如果没有本地用户信息，就停留在登录界面（已经显示）
             }
 
             document.addEventListener('DOMContentLoaded', function() {
@@ -1512,7 +1663,7 @@ async function handleAuth() {
         })();
 
         loadTheme();
-        console.log('MiniChat 已迁移到 Supabase Auth (方案A，已修复)');
+        console.log('MiniChat 已集成昵称功能');
     </script>
 </body>
 </html>
