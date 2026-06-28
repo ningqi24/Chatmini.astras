@@ -365,6 +365,127 @@
             color: var(--text-secondary);
             margin-left: 10px;
         }
+        .chat-header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .online-users-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+            position: relative;
+        }
+        .online-users-btn:hover {
+            background: var(--bg-hover);
+        }
+        .online-users-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+        .online-badge {
+            background: var(--accent);
+            color: #fff;
+            border-radius: 50%;
+            padding: 0 5px;
+            font-size: 10px;
+            min-width: 16px;
+            height: 16px;
+            line-height: 16px;
+            text-align: center;
+            display: none;
+        }
+        .online-badge.show {
+            display: inline-block;
+        }
+        /* ===== 在线用户弹窗 ===== */
+        .online-modal {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            background: var(--bg-card);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            padding: 16px;
+            min-width: 200px;
+            max-width: 280px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 250;
+        }
+        .online-modal.active {
+            display: block;
+        }
+        .online-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .online-modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+        }
+        .online-user-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .online-user-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .online-user-item:last-child {
+            border-bottom: none;
+        }
+        .online-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            flex-shrink: 0;
+        }
+        .online-user-name {
+            font-weight: 500;
+        }
+        .online-user-email {
+            font-size: 10px;
+            opacity: 0.6;
+            margin-left: 4px;
+        }
+        .online-empty {
+            color: var(--text-muted);
+            font-size: 13px;
+            text-align: center;
+            padding: 12px 0;
+        }
+        /* ===== 聊天消息样式（保留） ===== */
         .chat-main .chat-messages {
             flex: 1;
             overflow-y: auto;
@@ -766,6 +887,12 @@
             .splash-bar {
                 width: 260px;
             }
+            .online-modal {
+                right: 10px;
+                left: 10px;
+                top: 50px;
+                max-width: none;
+            }
         }
         @media (max-width: 480px) {
             .sidebar {
@@ -861,8 +988,27 @@
                         全局聊天
                         <small># 所有成员</small>
                     </div>
-                    <div style="font-size:13px;color:var(--text-secondary);">
+                    <div class="chat-header-right">
                         <span id="onlineStatus">● 在线</span>
+                        <button class="online-users-btn" id="onlineUsersBtn" title="在线用户">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                            <span class="online-badge" id="onlineBadge">0</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- 在线用户弹窗 -->
+                <div class="online-modal" id="onlineModal">
+                    <div class="online-modal-header">
+                        <span>在线用户 (<span id="modalOnlineCount">0</span>)</span>
+                        <button class="online-modal-close" id="closeOnlineModal">&times;</button>
+                    </div>
+                    <div class="online-user-list" id="onlineUserList">
+                        <!-- 动态渲染 -->
                     </div>
                 </div>
                 <div class="chat-messages" id="messageList"></div>
@@ -963,6 +1109,13 @@
         const displayNameInput = document.getElementById('displayNameInput');
         const saveDisplayNameBtn = document.getElementById('saveDisplayName');
         const displayNameMessage = document.getElementById('displayNameMessage');
+        const onlineStatus = document.getElementById('onlineStatus');
+        const onlineBadge = document.getElementById('onlineBadge');
+        const onlineModal = document.getElementById('onlineModal');
+        const onlineUserList = document.getElementById('onlineUserList');
+        const modalOnlineCount = document.getElementById('modalOnlineCount');
+        const onlineUsersBtn = document.getElementById('onlineUsersBtn');
+        const closeOnlineModal = document.getElementById('closeOnlineModal');
 
         let currentEmail = '';
         let currentUserId = '';
@@ -977,6 +1130,12 @@
         let hasMoreMessages = true;
         let oldestTimestamp = null;
         let unreadCount = 0;
+
+        // ==========================================
+        // 在线用户相关变量
+        // ==========================================
+        let onlineUsers = {};
+        let onlineCount = 0;
 
         // ==========================================
         // 主题管理
@@ -1196,6 +1355,46 @@
         }
 
         // ==========================================
+        // 在线用户 UI 更新
+        // ==========================================
+        function updateOnlineUI() {
+            onlineStatus.textContent = `● ${onlineCount} 人在线`;
+            onlineBadge.textContent = onlineCount;
+            onlineBadge.classList.toggle('show', onlineCount > 0);
+            modalOnlineCount.textContent = onlineCount;
+            renderOnlineUsers();
+        }
+
+        function renderOnlineUsers() {
+            onlineUserList.innerHTML = '';
+            if (onlineCount === 0) {
+                onlineUserList.innerHTML = '<div class="online-empty">暂无其他在线用户</div>';
+                return;
+            }
+            const currentUserId_ = currentUserId;
+            for (const [id, user] of Object.entries(onlineUsers)) {
+                // 可选：不显示自己
+                // if (id === currentUserId_) continue;
+                const item = document.createElement('div');
+                item.className = 'online-user-item';
+                const dot = document.createElement('span');
+                dot.className = 'online-dot';
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'online-user-name';
+                nameSpan.textContent = user.display_name || '匿名';
+                if (user.email && user.email !== user.display_name) {
+                    const emailSpan = document.createElement('span');
+                    emailSpan.className = 'online-user-email';
+                    emailSpan.textContent = user.email;
+                    nameSpan.appendChild(emailSpan);
+                }
+                item.appendChild(dot);
+                item.appendChild(nameSpan);
+                onlineUserList.appendChild(item);
+            }
+        }
+
+        // ==========================================
         // 认证逻辑
         // ==========================================
         function switchMode(mode) {
@@ -1342,7 +1541,7 @@
         }
 
         // ==========================================
-        // ✅ 方案A：修改昵称时同步更新历史消息
+        // ✅ 方案A：修改昵称时同步更新历史消息 + 更新 Presence
         // ==========================================
         async function saveDisplayName() {
             const newName = displayNameInput.value.trim();
@@ -1376,7 +1575,7 @@
                     return;
                 }
 
-                // ✅ 2. 同步更新所有历史消息的 sender_name（方案A核心）
+                // ✅ 2. 同步更新所有历史消息的 sender_name
                 const { error: updateMsgError } = await supabase
                     .from('messages')
                     .update({ sender_name: newName })
@@ -1393,6 +1592,16 @@
 
                 currentDisplayName = newName;
                 sidebarUserEmail.textContent = newName;
+
+                // ✅ 3. 更新 Presence 信息（让别人看到新昵称）
+                if (window.chatChannel) {
+                    await window.chatChannel.track({
+                        user_id: currentUserId,
+                        email: currentEmail,
+                        display_name: currentDisplayName,
+                        online_at: new Date().toISOString()
+                    });
+                }
 
                 // 刷新消息列表
                 refreshMessages();
@@ -1532,11 +1741,15 @@
         // 退出登录
         // ==========================================
         async function handleLogout() {
-            await supabase.auth.signOut();
+            // 退出前 untrack
             if (window.chatChannel) {
+                try {
+                    await window.chatChannel.untrack();
+                } catch (e) {}
                 window.chatChannel.unsubscribe();
                 window.chatChannel = null;
             }
+            await supabase.auth.signOut();
             currentEmail = '';
             currentUserId = '';
             currentDisplayName = '';
@@ -1549,65 +1762,66 @@
             setAuthMessage('已退出', '');
             closeSettingsPanel();
             messageList.removeEventListener('scroll', handleScroll);
+            // 重置在线状态
+            onlineUsers = {};
+            onlineCount = 0;
+            updateOnlineUI();
         }
 
-// ==========================================
-// 发送消息（同时存 sender_name 和 sender_email）
-// ==========================================
-async function sendMessageContent(content) {
-    if (!currentEmail) {
-        alert('请先登录');
-        return;
-    }
+        // ==========================================
+        // 发送消息（同时存 sender_name 和 sender_email）
+        // ==========================================
+        async function sendMessageContent(content) {
+            if (!currentEmail) {
+                alert('请先登录');
+                return;
+            }
 
-    const senderName = currentDisplayName || currentEmail.split('@')[0];
+            const senderName = currentDisplayName || currentEmail.split('@')[0];
 
-    // ✅ 1. 乐观添加临时消息（无撤回按钮）
-    const tempDiv = createMessageElement(content, senderName, currentEmail, true, null, null, null);
-    tempDiv.id = 'temp-' + Date.now(); // 临时 ID
-    messageList.appendChild(tempDiv);
-    messageList.scrollTop = messageList.scrollHeight;
+            // ✅ 1. 乐观添加临时消息（无撤回按钮）
+            const tempDiv = createMessageElement(content, senderName, currentEmail, true, null, null, null);
+            tempDiv.id = 'temp-' + Date.now();
+            messageList.appendChild(tempDiv);
+            messageList.scrollTop = messageList.scrollHeight;
 
-    try {
-        // ✅ 2. 插入数据库
-        const { data, error } = await supabase
-            .from('messages')
-            .insert({
-                content: content,
-                sender_name: senderName,
-                sender_email: currentEmail
-            })
-            .select()  // 返回插入的记录
-            .single();
+            try {
+                const { data, error } = await supabase
+                    .from('messages')
+                    .insert({
+                        content: content,
+                        sender_name: senderName,
+                        sender_email: currentEmail
+                    })
+                    .select()
+                    .single();
 
-        if (error) throw error;
+                if (error) throw error;
 
-        // ✅ 3. 用真实数据替换临时消息
-        if (data) {
-            const newDiv = createMessageElement(
-                data.content,
-                data.sender_name || '匿名',
-                data.sender_email || data.sender_name,
-                true,
-                formatTime(data.created_at),
-                data.id,
-                data.created_at
-            );
-            tempDiv.replaceWith(newDiv);
+                if (data) {
+                    const newDiv = createMessageElement(
+                        data.content,
+                        data.sender_name || '匿名',
+                        data.sender_email || data.sender_name,
+                        true,
+                        formatTime(data.created_at),
+                        data.id,
+                        data.created_at
+                    );
+                    tempDiv.replaceWith(newDiv);
+                }
+
+                if (chatInput.value) chatInput.value = '';
+
+            } catch (err) {
+                console.error('发送失败:', err);
+                if (tempDiv.parentNode) tempDiv.remove();
+                setAuthMessage('消息发送失败，请重试', 'error');
+                setTimeout(() => {
+                    if (authMessage.textContent === '消息发送失败，请重试') authMessage.textContent = '';
+                }, 3000);
+            }
         }
-
-        if (chatInput.value) chatInput.value = '';
-
-    } catch (err) {
-        console.error('发送失败:', err);
-        // 移除临时消息
-        if (tempDiv.parentNode) tempDiv.remove();
-        setAuthMessage('消息发送失败，请重试', 'error');
-        setTimeout(() => {
-            if (authMessage.textContent === '消息发送失败，请重试') authMessage.textContent = '';
-        }, 3000);
-    }
-}
 
         // ==========================================
         // ✅ 消息撤回功能
@@ -1713,7 +1927,7 @@ async function sendMessageContent(content) {
             tempDiv.id = tempId;
             tempDiv.className = 'message me';
             tempDiv.innerHTML =
-            '<div class="sender"><span class="name">我</span></div><span style="opacity:0.6;">上传中…</span>';
+                '<div class="sender"><span class="name">我</span></div><span style="opacity:0.6;">上传中…</span>';
             messageList.appendChild(tempDiv);
             messageList.scrollTop = messageList.scrollHeight;
 
@@ -1747,83 +1961,133 @@ async function sendMessageContent(content) {
         });
 
         // ==========================================
-        // ✅ 订阅实时消息（支持 INSERT + UPDATE）
+        // ✅ 订阅实时消息 + Presence
         // ==========================================
         function subscribeMessages() {
             if (window.chatChannel) {
                 window.chatChannel.unsubscribe();
                 window.chatChannel = null;
             }
-            const channel = supabase
-                .channel('chat-room')
-                .on('postgres_changes', {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'messages'
-                }, (payload) => {
-                    try {
-                        const msg = payload.new;
-                        if (!msg) return;
-                        const isMe = (msg.sender_email === currentEmail);
-                        if (isMe) return;
-                        addMessageToBottom(
-                            msg.content,
-                            msg.sender_name || '匿名',
-                            msg.sender_email || msg.sender_name,
-                            false,
-                            formatTime(msg.created_at),
-                            msg.id,
-                            msg.created_at
-                        );
 
-                        if (document.hidden) {
-                            unreadCount++;
-                            document.title = `(${unreadCount}) MiniChat`;
-                            if ('Notification' in window && Notification.permission === 'granted') {
-                                const notification = new Notification('新消息', {
-                                    body: `${msg.sender_name}: ${msg.content}`,
-                                    icon: 'assets/logo.svg'
-                                });
-                                setTimeout(() => notification.close(), 5000);
+            const channel = supabase.channel('chat-room', {
+                config: {
+                    presence: {
+                        key: currentUserId // 每个用户一个唯一 key
+                    }
+                }
+            });
+
+            // ---------- Presence 处理 ----------
+            channel.on('presence', { event: 'sync' }, () => {
+                const state = channel.presenceState();
+                const users = {};
+                let count = 0;
+                for (const [key, presences] of Object.entries(state)) {
+                    // 取每个用户的最新一个连接（多标签页只算一次）
+                    const presence = presences[0];
+                    if (presence) {
+                        users[key] = {
+                            user_id: key,
+                            display_name: presence.display_name || '匿名',
+                            email: presence.email || ''
+                        };
+                        count++;
+                    }
+                }
+                onlineUsers = users;
+                onlineCount = count;
+                updateOnlineUI();
+            });
+
+            // 可选：监听加入/离开事件（用于调试）
+            channel.on('presence', { event: 'join' }, ({ key, newPresences }) => {
+                // console.log('加入:', key, newPresences);
+            });
+            channel.on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+                // console.log('离开:', key, leftPresences);
+            });
+
+            // ---------- 消息变化监听 ----------
+            channel.on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'messages'
+            }, (payload) => {
+                try {
+                    const msg = payload.new;
+                    if (!msg) return;
+                    const isMe = (msg.sender_email === currentEmail);
+                    if (isMe) return;
+                    addMessageToBottom(
+                        msg.content,
+                        msg.sender_name || '匿名',
+                        msg.sender_email || msg.sender_name,
+                        false,
+                        formatTime(msg.created_at),
+                        msg.id,
+                        msg.created_at
+                    );
+
+                    if (document.hidden) {
+                        unreadCount++;
+                        document.title = `(${unreadCount}) MiniChat`;
+                        if ('Notification' in window && Notification.permission === 'granted') {
+                            const notification = new Notification('新消息', {
+                                body: `${msg.sender_name}: ${msg.content}`,
+                                icon: 'assets/logo.svg'
+                            });
+                            setTimeout(() => notification.close(), 5000);
+                        }
+                    }
+                } catch (e) {
+                    console.error('处理新消息失败:', e);
+                }
+            });
+
+            channel.on('postgres_changes', {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'messages'
+            }, (payload) => {
+                try {
+                    const updated = payload.new;
+                    const elements = document.querySelectorAll(`.message[data-message-id="${updated.id}"]`);
+                    elements.forEach(el => {
+                        const contentDiv = el.querySelector('.message-content');
+                        if (contentDiv) {
+                            if (updated.content === '（已撤回）') {
+                                contentDiv.textContent = '（已撤回）';
+                                contentDiv.className = 'message-content recalled';
+                            } else {
+                                contentDiv.innerHTML = updated.content.replace(/</g, '&lt;').replace(
+                                    />/g, '&gt;');
+                                contentDiv.className = 'message-content';
                             }
                         }
-                    } catch (e) {
-                        console.error('处理新消息失败:', e);
-                    }
-                })
-                // ✅ 监听消息更新（撤回）
-                .on('postgres_changes', {
-                    event: 'UPDATE',
-                    schema: 'public',
-                    table: 'messages'
-                }, (payload) => {
-                    try {
-                        const updated = payload.new;
-                        const elements = document.querySelectorAll(`.message[data-message-id="${updated.id}"]`);
-                        elements.forEach(el => {
-                            const contentDiv = el.querySelector('.message-content');
-                            if (contentDiv) {
-                                if (updated.content === '（已撤回）') {
-                                    contentDiv.textContent = '（已撤回）';
-                                    contentDiv.className = 'message-content recalled';
-                                } else {
-                                    contentDiv.innerHTML = updated.content.replace(/</g, '&lt;').replace(
-                                        />/g, '&gt;');
-                                    contentDiv.className = 'message-content';
-                                }
-                            }
-                            // 移除撤回按钮
-                            const footer = el.querySelector('.message-footer');
-                            if (footer && updated.content === '（已撤回）') {
-                                const recallBtn = footer.querySelector('.recall-btn');
-                                if (recallBtn) recallBtn.remove();
-                            }
-                        });
-                    } catch (e) {
-                        console.error('处理消息更新失败:', e);
-                    }
-                })
-                .subscribe((status) => { /* console.log('channel status', status) */ });
+                        const footer = el.querySelector('.message-footer');
+                        if (footer && updated.content === '（已撤回）') {
+                            const recallBtn = footer.querySelector('.recall-btn');
+                            if (recallBtn) recallBtn.remove();
+                        }
+                    });
+                } catch (e) {
+                    console.error('处理消息更新失败:', e);
+                }
+            });
+
+            // ---------- 订阅 ----------
+            channel.subscribe(async (status) => {
+                if (status === 'SUBSCRIBED') {
+                    // 订阅成功，track 当前用户
+                    await channel.track({
+                        user_id: currentUserId,
+                        email: currentEmail,
+                        display_name: currentDisplayName || currentEmail.split('@')[0],
+                        online_at: new Date().toISOString()
+                    });
+                }
+            });
+
             window.chatChannel = channel;
         }
 
@@ -1880,6 +2144,22 @@ async function sendMessageContent(content) {
             }
         });
 
+        // 在线用户弹窗控制
+        onlineUsersBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            onlineModal.classList.toggle('active');
+        });
+        closeOnlineModal.addEventListener('click', function() {
+            onlineModal.classList.remove('active');
+        });
+        document.addEventListener('click', function(e) {
+            if (onlineModal.classList.contains('active') &&
+                !onlineModal.contains(e.target) &&
+                !onlineUsersBtn.contains(e.target)) {
+                onlineModal.classList.remove('active');
+            }
+        });
+
         // ==========================================
         // Splash 控制
         // ==========================================
@@ -1927,7 +2207,7 @@ async function sendMessageContent(content) {
         })();
 
         loadTheme();
-        console.log('✅ MiniChat 已升级：方案A(同步历史消息) + 突出昵称 + 消息撤回');
+        console.log('✅ MiniChat 已升级：在线用户列表 + 消息撤回 + 昵称同步');
     </script>
 </body>
 </html>
