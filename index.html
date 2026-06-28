@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>MiniChat</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/window.supabaseClient.min.js">
+    <!-- ✅ 正确引入 Supabase JS（注意：暴露全局 supabase） -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js">
     </script>
     <style>
         /* ===== 全局重置 & 双主题变量（与原来完全相同） ===== */
@@ -242,7 +243,6 @@
         .login-card .auth-toggle a:hover {
             text-decoration: underline;
         }
-        /* 密码可见切换 */
         .login-card .pwd-wrapper {
             position: relative;
         }
@@ -621,7 +621,6 @@
             from { opacity: 0; transform: translateY(6px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        /* ===== 响应式 ===== */
         @media (max-width: 768px) {
             body { padding: 0; }
             .app { max-height: 100vh; border-radius: 0; }
@@ -674,7 +673,7 @@
             </div>
         </div>
 
-        <!-- 登录界面（新：邮箱 + 密码） -->
+        <!-- 登录界面（邮箱 + 密码） -->
         <div class="login-overlay" id="loginOverlay">
             <div class="login-card">
                 <div class="logo-area">
@@ -775,13 +774,26 @@
         // ==========================================
         // 配置
         // ==========================================
-        const SUPABASE_URL = 'https://xgugltiuszrpmbxjmqfv.window.supabaseClient.co';
+        const SUPABASE_URL = 'https://xgugltiuszrpmbxjmqfv.supabase.co';
         const SUPABASE_ANON_KEY =
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhndWdsdGl1c3pycG1ieGptcWZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0ODE2MTUsImV4cCI6MjA5ODA1NzYxNX0.nWiJm_7Fh3-6MUdazhW7CwOAi8w2PVMsDbfhUNyUIsM';
 
-        if (!window.supabaseClient) {
-            window.supabaseClient = window.window.supabaseClient.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // ✅ 直接使用全局 supabase（由 CDN 提供），不要重新声明
+        // 如果 supabase 未定义，才初始化（但 CDN 加载后一定存在）
+        if (typeof supabase === 'undefined') {
+            window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } else {
+            // 已经存在，则初始化（但通常 CDN 会直接暴露 supabase 对象，不用再调用 createClient）
+            // 但为了保险，检查 supabase 是否已配置
+            if (!supabase.auth) {
+                // 可能用户自己改过，重新初始化
+                window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
         }
+
+        // 为了代码清晰，我们使用 client 变量指向全局 supabase（但不重新声明）
+        // 注意：不要用 const，直接用 var 或直接使用 supabase
+        // 我们直接使用 supabase 全局变量即可
 
         // ==========================================
         // DOM 引用
@@ -871,7 +883,6 @@
             if (type === 'error') authMessage.classList.add('error');
         }
 
-        // 图片预览（与原来相同）
         window.previewImage = function(url) {
             const overlay = document.createElement('div');
             overlay.style.cssText =
@@ -939,7 +950,6 @@
             document.body.appendChild(overlay);
         };
 
-        // 创建消息元素（与原来相同）
         function createMessageElement(content, sender, isMe, time) {
             const div = document.createElement('div');
             div.className = 'message ' + (isMe ? 'me' : 'other');
@@ -998,7 +1008,7 @@
         }
 
         // ==========================================
-        // 认证逻辑（Supabase Auth）
+        // 认证逻辑（使用全局 supabase）
         // ==========================================
         function switchMode(mode) {
             isLoginMode = (mode === 'login');
@@ -1037,11 +1047,9 @@
             try {
                 let result;
                 if (isLoginMode) {
-                    // 登录
-                    result = await window.supabaseClient.auth.signInWithPassword({ email, password });
+                    result = await supabase.auth.signInWithPassword({ email, password });
                 } else {
-                    // 注册
-                    result = await window.supabaseClient.auth.signUp({ email, password });
+                    result = await supabase.auth.signUp({ email, password });
                 }
                 if (result.error) {
                     setAuthMessage(result.error.message, 'error');
@@ -1055,32 +1063,8 @@
                     return;
                 }
 
-                // 登录/注册成功
                 currentEmail = user.email;
                 currentUserId = user.id;
-                // 如果是注册，可能需等待确认邮件（但已关闭确认），直接登录
-                // 但为了保险，检查 session 是否存在
-                const { data: sessionData } = await window.supabaseClient.auth.getSession();
-                if (!sessionData.session) {
-                    // 可能是注册后未自动登录（如果启用了邮件确认），但我们关闭了确认，应该已有session
-                    // 如果还是没有，尝试再次登录
-                    if (!isLoginMode) {
-                        // 注册后自动登录
-                        const { data: signInData, error: signInError } = await window.supabaseClient.auth.signInWithPassword({ email, password });
-                        if (signInError) {
-                            setAuthMessage('注册成功，但自动登录失败，请尝试登录', 'error');
-                            setLoading(false);
-                            return;
-                        }
-                        // 更新用户
-                        currentEmail = signInData.user.email;
-                        currentUserId = signInData.user.id;
-                    } else {
-                        setAuthMessage('登录失败，请重试', 'error');
-                        setLoading(false);
-                        return;
-                    }
-                }
 
                 // 确保 profiles 表有记录
                 await ensureProfile(user.id, user.email);
@@ -1088,7 +1072,6 @@
                 setAuthMessage(isLoginMode ? '登录成功' : '注册成功', 'success');
                 setLoading(false);
 
-                // 进入聊天
                 enterChat();
 
             } catch (err) {
@@ -1098,9 +1081,7 @@
             }
         }
 
-        // 确保 profiles 中存在该用户
         async function ensureProfile(userId, email) {
-            // 查询是否存在
             const { data, error } = await supabase
                 .from('profiles')
                 .select('id')
@@ -1111,7 +1092,6 @@
                 return;
             }
             if (!data) {
-                // 插入
                 const { error: insertError } = await supabase
                     .from('profiles')
                     .insert({ id: userId, email: email, last_login: new Date().toISOString() });
@@ -1119,7 +1099,6 @@
                     console.error('插入 profiles 失败:', insertError);
                 }
             } else {
-                // 更新 last_login
                 const { error: updateError } = await supabase
                     .from('profiles')
                     .update({ last_login: new Date().toISOString() })
@@ -1218,9 +1197,6 @@
             messageList.addEventListener('scroll', handleScroll);
         }
 
-        // ==========================================
-        // 滚动触顶加载更多
-        // ==========================================
         function handleScroll() {
             const scrollTop = messageList.scrollTop;
             if (scrollTop <= 20 && !isLoadingMore && hasMoreMessages) {
@@ -1232,7 +1208,7 @@
         // 退出登录
         // ==========================================
         async function handleLogout() {
-            await window.supabaseClient.auth.signOut();
+            await supabase.auth.signOut();
             if (window.chatChannel) {
                 window.chatChannel.unsubscribe();
                 window.chatChannel = null;
@@ -1258,7 +1234,6 @@
                 alert('请先登录');
                 return;
             }
-            // 乐观更新
             addMessageToBottom(content, currentEmail, true);
 
             try {
@@ -1266,11 +1241,9 @@
                     .from('messages')
                     .insert({ content: content, sender_name: currentEmail });
                 if (error) throw error;
-                // 清空输入框（图片发送时不会清空，但文本会）
                 if (chatInput.value) chatInput.value = '';
             } catch (err) {
                 console.error('发送失败:', err);
-                // 移除乐观消息
                 if (messageList.lastChild) messageList.removeChild(messageList.lastChild);
                 setAuthMessage('消息发送失败', 'error');
                 setTimeout(() => {
@@ -1280,7 +1253,7 @@
         }
 
         // ==========================================
-        // 图片压缩（同原来）
+        // 图片压缩
         // ==========================================
         function compressImage(file, maxWidth, quality) {
             return new Promise((resolve, reject) => {
@@ -1364,11 +1337,11 @@
                 const fileExt = processedFile.name.split('.').pop();
                 const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
                 const filePath = `public/${fileName}`;
-                const { data, error } = await window.supabaseClient.storage
+                const { data, error } = await supabase.storage
                     .from('chat-images')
                     .upload(filePath, processedFile, { cacheControl: '3600', upsert: false });
                 if (error) throw error;
-                const { data: urlData } = window.supabaseClient.storage
+                const { data: urlData } = supabase.storage
                     .from('chat-images')
                     .getPublicUrl(filePath);
                 const publicURL = urlData.publicUrl;
@@ -1444,9 +1417,7 @@
         // 事件绑定
         // ==========================================
         btnLogin.addEventListener('click', handleAuth);
-        // 切换模式
         document.getElementById('switchToSignup').addEventListener('click', () => switchMode('signup'));
-        // 密码显示切换
         togglePwd.addEventListener('click', function() {
             const type = authPassword.getAttribute('type') === 'password' ? 'text' : 'password';
             authPassword.setAttribute('type', type);
@@ -1478,45 +1449,45 @@
         if (settingsLogout) settingsLogout.addEventListener('click', handleLogout);
 
         // ==========================================
-        // Splash 控制
+        // Splash 控制（先显示登录界面，再尝试恢复）
         // ==========================================
         (function() {
             const SPLASH_DURATION = 2600;
             const splash = document.getElementById('splash');
             const fill = document.getElementById('splashFill');
 
-    function hideSplash() {
-        if (!splash) return;
-        splash.classList.add('hidden');
-        setTimeout(() => {
-            if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
-        }, 420);
-        
-        // ★ 先确保登录界面显示（防止空白）
-        loginOverlay.classList.remove('hidden');
-        
-        // 然后尝试恢复 session（静默处理）
-        const raw = localStorage.getItem('minichat_user');
-        if (raw) {
-            try {
-                const u = JSON.parse(raw);
-                if (u && u.email) {
-                    currentEmail = u.email;
-                    currentUserId = u.id || '';
-                    // 异步检查 session，有效则自动进入聊天
-                    window.supabaseClient.auth.getSession().then(({ data, error }) => {
-                        if (data.session) {
-                            enterChat(); // 会隐藏登录界面并显示主界面
-                        }
-                        // 如果 session 无效，什么都不做，保留登录界面
-                    }).catch(() => {
-                        // 出错也什么都不做，保留登录界面
-                    });
-                    return;
-                }
-            } catch (e) { /* ignore */ }
-        }
+            function hideSplash() {
+                if (!splash) return;
+                splash.classList.add('hidden');
+                setTimeout(() => {
+                    if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
+                }, 420);
+                
+                // ★ 先确保登录界面显示（防止空白）
                 loginOverlay.classList.remove('hidden');
+                
+                // 然后尝试恢复 session（静默处理）
+                const raw = localStorage.getItem('minichat_user');
+                if (raw) {
+                    try {
+                        const u = JSON.parse(raw);
+                        if (u && u.email) {
+                            currentEmail = u.email;
+                            currentUserId = u.id || '';
+                            // 异步检查 session，有效则自动进入聊天
+                            supabase.auth.getSession().then(({ data, error }) => {
+                                if (data.session) {
+                                    enterChat(); // 会隐藏登录界面并显示主界面
+                                }
+                                // 如果 session 无效，什么都不做，保留登录界面
+                            }).catch(() => {
+                                // 出错也什么都不做，保留登录界面
+                            });
+                            return;
+                        }
+                    } catch (e) { /* ignore */ }
+                }
+                // 如果没有本地用户信息，就停留在登录界面（已经显示）
             }
 
             document.addEventListener('DOMContentLoaded', function() {
@@ -1531,7 +1502,7 @@
         })();
 
         loadTheme();
-        console.log('MiniChat 已迁移到 Supabase Auth (方案A)');
+        console.log('MiniChat 已迁移到 Supabase Auth (方案A，已修复)');
     </script>
 </body>
 </html>
