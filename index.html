@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>MiniChat</title>
-    <!-- ✅ 正确引入 Supabase JS（注意：暴露全局 supabase） -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js">
     </script>
     <style>
@@ -1041,6 +1040,15 @@
                 setAuthMessage('密码至少6位', 'error');
                 return;
             }
+            if (result.error) {
+    if (result.error.message.includes('Email not confirmed')) {
+        setAuthMessage('请先验证邮箱后再登录', 'error');
+    } else {
+        setAuthMessage(result.error.message, 'error');
+    }
+    setLoading(false);
+    return;
+}
             setLoading(true);
             setAuthMessage('处理中…', '');
 
