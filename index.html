@@ -1069,11 +1069,18 @@
                 // 确保 profiles 表有记录
                 await ensureProfile(user.id, user.email);
 
-                setAuthMessage(isLoginMode ? '登录成功' : '注册成功', 'success');
-                setLoading(false);
-
-                enterChat();
-
+if (isLoginMode) {
+    // 登录成功
+    setAuthMessage('登录成功', 'success');
+    setLoading(false);
+    enterChat();
+} else {
+    // 注册成功，但需要验证邮箱
+    setAuthMessage('注册成功！请查收邮件并点击确认链接后登录。', 'success');
+    setLoading(false);
+    // 不清除表单，让用户可以去查看邮件
+    // 不调用 enterChat()
+}
             } catch (err) {
                 console.error(err);
                 setAuthMessage('网络错误，请重试', 'error');
