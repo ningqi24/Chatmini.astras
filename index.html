@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>MiniChat</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/window.supabaseClient.min.js">
     </script>
     <style>
         /* ===== 全局重置 & 双主题变量（与原来完全相同） ===== */
@@ -775,14 +775,13 @@
         // ==========================================
         // 配置
         // ==========================================
-        const SUPABASE_URL = 'https://xgugltiuszrpmbxjmqfv.supabase.co';
+        const SUPABASE_URL = 'https://xgugltiuszrpmbxjmqfv.window.supabaseClient.co';
         const SUPABASE_ANON_KEY =
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhndWdsdGl1c3pycG1ieGptcWZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0ODE2MTUsImV4cCI6MjA5ODA1NzYxNX0.nWiJm_7Fh3-6MUdazhW7CwOAi8w2PVMsDbfhUNyUIsM';
 
         if (!window.supabaseClient) {
-            window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            window.supabaseClient = window.window.supabaseClient.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         }
-        const supabase = window.supabaseClient;
 
         // ==========================================
         // DOM 引用
@@ -1039,10 +1038,10 @@
                 let result;
                 if (isLoginMode) {
                     // 登录
-                    result = await supabase.auth.signInWithPassword({ email, password });
+                    result = await window.supabaseClient.auth.signInWithPassword({ email, password });
                 } else {
                     // 注册
-                    result = await supabase.auth.signUp({ email, password });
+                    result = await window.supabaseClient.auth.signUp({ email, password });
                 }
                 if (result.error) {
                     setAuthMessage(result.error.message, 'error');
@@ -1061,13 +1060,13 @@
                 currentUserId = user.id;
                 // 如果是注册，可能需等待确认邮件（但已关闭确认），直接登录
                 // 但为了保险，检查 session 是否存在
-                const { data: sessionData } = await supabase.auth.getSession();
+                const { data: sessionData } = await window.supabaseClient.auth.getSession();
                 if (!sessionData.session) {
                     // 可能是注册后未自动登录（如果启用了邮件确认），但我们关闭了确认，应该已有session
                     // 如果还是没有，尝试再次登录
                     if (!isLoginMode) {
                         // 注册后自动登录
-                        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+                        const { data: signInData, error: signInError } = await window.supabaseClient.auth.signInWithPassword({ email, password });
                         if (signInError) {
                             setAuthMessage('注册成功，但自动登录失败，请尝试登录', 'error');
                             setLoading(false);
@@ -1233,7 +1232,7 @@
         // 退出登录
         // ==========================================
         async function handleLogout() {
-            await supabase.auth.signOut();
+            await window.supabaseClient.auth.signOut();
             if (window.chatChannel) {
                 window.chatChannel.unsubscribe();
                 window.chatChannel = null;
@@ -1365,11 +1364,11 @@
                 const fileExt = processedFile.name.split('.').pop();
                 const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
                 const filePath = `public/${fileName}`;
-                const { data, error } = await supabase.storage
+                const { data, error } = await window.supabaseClient.storage
                     .from('chat-images')
                     .upload(filePath, processedFile, { cacheControl: '3600', upsert: false });
                 if (error) throw error;
-                const { data: urlData } = supabase.storage
+                const { data: urlData } = window.supabaseClient.storage
                     .from('chat-images')
                     .getPublicUrl(filePath);
                 const publicURL = urlData.publicUrl;
@@ -1505,7 +1504,7 @@
                     currentEmail = u.email;
                     currentUserId = u.id || '';
                     // 异步检查 session，有效则自动进入聊天
-                    supabase.auth.getSession().then(({ data, error }) => {
+                    window.supabaseClient.auth.getSession().then(({ data, error }) => {
                         if (data.session) {
                             enterChat(); // 会隐藏登录界面并显示主界面
                         }
