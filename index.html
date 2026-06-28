@@ -1692,13 +1692,13 @@
         // 编辑相关变量
         // ==========================================
         let editingMessageId = null;
-        let editingAttachments = []; // 原有附件 { type, url }
+        let editingAttachments = [];
         let isSending = false;
 
         // ==========================================
         // 附件管理
         // ==========================================
-        let attachments = []; // 每个元素 { id, file, type, name, url?, existing? }
+        let attachments = [];
 
         // ==========================================
         // 主题管理
@@ -1933,7 +1933,7 @@
         }
 
         // ==========================================
-        // 更新所有消息头像（用于头像实时同步）
+        // 更新所有消息头像
         // ==========================================
         function updateAllMessageAvatars(email, newAvatarUrl) {
             const avatars = document.querySelectorAll(`.message[data-sender-email="${email}"] .avatar-wrapper img`);
@@ -1943,7 +1943,7 @@
         }
 
         // ==========================================
-        // 插入文本到光标位置
+        // 在光标位置插入文本
         // ==========================================
         function insertAtCursor(text) {
             const start = chatInput.selectionStart;
@@ -1957,7 +1957,7 @@
         }
 
         // ==========================================
-        // 创建消息元素（含头像 + 功能按钮 + 引用+@）
+        // 创建消息元素
         // ==========================================
         function createMessageElement(msg) {
             const { content, sender_name, sender_email, isMe, time, id, created_at, avatar_url } = msg;
@@ -1967,17 +1967,15 @@
             if (created_at) div.dataset.createdAt = created_at;
             if (sender_email) div.dataset.senderEmail = sender_email;
 
-            // 引用按钮（悬停显示）
+            // 引用按钮
             const quoteBtn = document.createElement('div');
             quoteBtn.className = 'quote-btn';
             quoteBtn.innerHTML = '💬 引用';
             quoteBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                // 提取纯文本和附件描述
                 let rawContent = content || '';
                 let plainText = rawContent.replace(/!\[image\]\([^)]*\)/g, '').replace(/\[audio\]\([^)]*\)/g, '').trim();
                 if (!plainText) plainText = '';
-                // 检测是否有附件
                 const hasImage = rawContent.includes('![image]');
                 const hasAudio = rawContent.includes('[audio]');
                 let attachDesc = '';
@@ -1989,8 +1987,8 @@
                     else plainText = attachDesc;
                 }
                 if (!plainText) plainText = '[空消息]';
-                const quoteBlock = `> ${sender_name || '匿名'}: ${plainText}`;
-                insertAtCursor((chatInput.value ? '\n' : '') + quoteBlock + '\n');
+                const quoteBlock = `\n> ${sender_name || '匿名'}: ${plainText}\n`;
+                insertAtCursor(quoteBlock);
                 setAuthMessage('✅ 已引用', 'success');
                 setTimeout(() => setAuthMessage(''), 1500);
             });
@@ -2032,9 +2030,8 @@
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
 
-            // 处理内容：引用块、@提及、图片、音频
             let displayContent = content || '';
-            // 处理 > 开头的引用行
+            // 引用块
             displayContent = displayContent.replace(/^>\s*(.+?)(?=\n|$)/gm, function(match, text) {
                 const parts = text.match(/^(.+?):\s*(.*)/);
                 if (parts) {
@@ -2043,7 +2040,7 @@
                     return `<div class="quote-block">${text}</div>`;
                 }
             });
-            // 处理 @提及
+            // @提及
             displayContent = displayContent.replace(/@(\S+)/g, function(match, username) {
                 return `<span class="mention">@${username}</span>`;
             });
@@ -2055,7 +2052,7 @@
             displayContent = displayContent.replace(/\[audio\]\((.*?)\)/g, function(match, url) {
                 return `<audio controls src="${url}" preload="metadata"></audio>`;
             });
-            // 转义普通文本（但保留已生成的标签）
+            // 转义
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = displayContent;
             function escapeTextNodes(node) {
@@ -2082,7 +2079,7 @@
             const isRecalled = content === '（已撤回）';
 
             if (!isRecalled) {
-                // 转发按钮
+                // 转发
                 const forwardBtn = document.createElement('button');
                 forwardBtn.className = 'action-btn';
                 forwardBtn.title = '转发（复制内容）';
@@ -2123,7 +2120,6 @@
                         `;
                         editBtn.addEventListener('click', function(e) {
                             e.stopPropagation();
-                            // 解析原消息中的附件
                             const rawContent = content || '';
                             const imageMatches = rawContent.match(/!\[image\]\(([^)]+)\)/g) || [];
                             const audioMatches = rawContent.match(/\[audio\]\(([^)]+)\)/g) || [];
@@ -2139,7 +2135,6 @@
                             let plainText = rawContent;
                             plainText = plainText.replace(/!\[image\]\([^)]*\)/g, '').replace(/\[audio\]\([^)]*\)/g,
                             '').trim();
-                            // 清空当前附件并填入原有附件
                             attachments = [];
                             allAttachments.forEach(att => {
                                 attachments.push({
@@ -2192,7 +2187,7 @@
         }
 
         // ==========================================
-        // 添加消息到列表
+        // 添加消息
         // ==========================================
         function addMessageToBottom(msg) {
             const div = createMessageElement(msg);
@@ -2696,7 +2691,7 @@
         }
 
         // ==========================================
-        // 发送消息（支持文本、附件、引用、@）
+        // 发送消息
         // ==========================================
         async function sendMessageContent(content) {
             if (!currentEmail) {
@@ -2711,7 +2706,7 @@
 
             const senderName = currentDisplayName || currentEmail.split('@')[0];
 
-            // 处理编辑模式：删除原消息
+            // 编辑模式：删除原消息
             if (editingMessageId) {
                 try {
                     const { error: deleteError } = await supabase
@@ -2732,10 +2727,10 @@
                 }
             }
 
-            // 构建最终内容
+            // 构建内容
             let finalContent = text;
 
-            // 原有附件markdown
+            // 原有附件
             let existingMarkdowns = [];
             if (editingAttachments && editingAttachments.length > 0) {
                 existingMarkdowns = editingAttachments.map(a => {
@@ -2745,7 +2740,7 @@
                 }).filter(Boolean);
             }
 
-            // 新附件上传
+            // 新附件
             const newAttachments = attachments.filter(a => !a.existing);
             let newMarkdowns = [];
             if (newAttachments.length > 0) {
@@ -2790,7 +2785,6 @@
                 }
             }
 
-            // 合并所有markdown
             const allMarkdowns = existingMarkdowns.concat(newMarkdowns);
             if (allMarkdowns.length > 0) {
                 if (finalContent) finalContent += '\n';
@@ -2803,7 +2797,7 @@
                 return;
             }
 
-            // 检查@提及，并发送通知给被@的人
+            // @提及
             const mentionMatches = text.match(/@(\S+)/g) || [];
             const mentionNames = mentionMatches.map(m => m.substring(1));
             const mentionedUsers = [];
@@ -2828,7 +2822,7 @@
                 }
             }
 
-            // 乐观创建临时消息
+            // 乐观发送
             const tempMsg = {
                 id: 'temp-' + Date.now(),
                 content: finalContent,
@@ -2873,7 +2867,6 @@
                     }
                 }
 
-                // 清空输入和附件
                 chatInput.value = '';
                 attachments = [];
                 editingAttachments = [];
@@ -2917,7 +2910,7 @@
         };
 
         // ==========================================
-        // 在线用户 UI 更新
+        // 在线用户 UI
         // ==========================================
         function updateOnlineUI() {
             onlineStatus.textContent = `● ${onlineCount} 人在线`;
@@ -2959,7 +2952,7 @@
         }
 
         // ==========================================
-        // @提及下拉列表
+        // @提及下拉
         // ==========================================
         let mentionActive = false;
         let mentionFilter = '';
@@ -3043,7 +3036,7 @@
         });
 
         // ==========================================
-        // “正在输入…” 功能
+        // “正在输入…”
         // ==========================================
         let typingStopTimeoutId = null;
         let lastTypingBroadcastTime = 0;
@@ -3082,7 +3075,7 @@
         }
 
         // ==========================================
-        // 订阅消息 + Presence + 广播（含mention监听）
+        // 订阅消息
         // ==========================================
         function subscribeMessages() {
             if (window.chatChannel) {
@@ -3318,6 +3311,38 @@
         };
 
         // ==========================================
+        // 拖拽文件到输入框
+        // ==========================================
+        chatInput.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.style.borderColor = 'var(--accent)';
+        });
+
+        chatInput.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.style.borderColor = '';
+        });
+
+        chatInput.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.style.borderColor = '';
+            const files = e.dataTransfer.files;
+            if (files && files.length > 0) {
+                for (let file of files) {
+                    if (file.type.startsWith('image/') || file.type.startsWith('audio/')) {
+                        addAttachment(file);
+                    } else {
+                        setAuthMessage('不支持的文件类型，仅支持图片和音频', 'error');
+                        setTimeout(() => setAuthMessage(''), 2000);
+                    }
+                }
+            }
+        });
+
+        // ==========================================
         // 粘贴处理（图片和音频）
         // ==========================================
         chatInput.addEventListener('paste', function(e) {
@@ -3331,7 +3356,6 @@
                     }
                     return;
                 }
-                // 尝试检测文件（部分浏览器支持音频文件粘贴）
                 if (item.kind === 'file') {
                     const file = item.getAsFile();
                     if (file && file.type.startsWith('audio/')) {
@@ -3344,7 +3368,7 @@
         });
 
         // ==========================================
-        // 文件选择
+        // 文件选择按钮
         // ==========================================
         attachBtn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -3361,7 +3385,7 @@
         });
 
         // ==========================================
-        // 输入框事件（Enter发送，ESC取消编辑）
+        // 输入框事件
         // ==========================================
         chatInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -3414,7 +3438,7 @@
         });
 
         // ==========================================
-        // 其他事件绑定（登录、设置等）
+        // 其他事件
         // ==========================================
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden) {
@@ -3532,7 +3556,7 @@
                 e.preventDefault();
                 deferredPrompt = e;
                 const installBtn = document.createElement('button');
-                installBtn.textContent = '安装 MiniChat';
+                installBtn.textContent = '📱 安装 MiniChat';
                 installBtn.style.cssText =
                     'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;padding:12px 24px;background:#3b82f6;color:#fff;border:none;border-radius:30px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.3);';
                 document.body.appendChild(installBtn);
@@ -3547,7 +3571,7 @@
         })();
 
         loadTheme();
-        console.log('✅ MiniChat 完整版：含@提及、引用回复、编辑保留附件、音频支持、按钮样式增强');
+        console.log('✅ MiniChat 已修复：拖拽文件、引用乱码、引用块独立');
     </script>
     <script>
         if ('serviceWorker' in navigator) {
