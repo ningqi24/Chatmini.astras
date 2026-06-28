@@ -616,13 +616,14 @@
             justify-content: flex-end;
             gap: 10px;
             font-size: 10px;
-            opacity: 0.5;
+            opacity: 0.8;
             flex-wrap: wrap;
+            margin-top: 2px;
         }
         .chat-main .message .message-footer .action-btn {
             background: none;
             border: none;
-            color: var(--text-muted);
+            color: var(--text-secondary);
             cursor: pointer;
             padding: 2px 6px;
             border-radius: 4px;
@@ -631,10 +632,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            opacity: 0.9;
         }
         .chat-main .message .message-footer .action-btn:hover {
             background: var(--bg-hover);
             color: var(--accent);
+            opacity: 1;
         }
         .chat-main .message .message-footer .action-btn svg {
             width: 14px;
@@ -648,17 +651,19 @@
         .chat-main .message .recall-btn {
             background: none;
             border: none;
-            color: var(--text-muted);
+            color: var(--text-secondary);
             font-size: 11px;
             cursor: pointer;
             padding: 2px 10px;
             border-radius: 4px;
             transition: all 0.2s;
             touch-action: manipulation;
+            opacity: 0.9;
         }
         .chat-main .message .recall-btn:hover {
             background: var(--bg-hover);
-            color: var(--accent);
+            color: #f87171;
+            opacity: 1;
         }
         .chat-main .message .recalled {
             opacity: 0.6;
@@ -869,6 +874,10 @@
         .chat-main .input-area .send-btn:hover {
             background: var(--accent-hover);
             box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+        }
+        .chat-main .input-area .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         .chat-main .input-area .send-btn svg {
             width: 24px;
@@ -1340,7 +1349,7 @@
                             </svg>
                         </button>
                     </div>
-                    <button class="send-btn" id="btnSend">
+                    <button class="send-btn" id="btnSend" disabled>
                         <svg viewBox="0 0 24 24">
                             <line x1="22" y1="2" x2="11" y2="13"/>
                             <polygon points="22 2 15 22 11 13 2 9 22 2"/>
@@ -1512,6 +1521,7 @@
         // 编辑相关变量
         // ==========================================
         let editingMessageId = null;
+        let isSending = false; // 防止重复发送
 
         // ==========================================
         // 主题管理
@@ -1822,84 +1832,88 @@
             timeSpan.textContent = time || formatTimeShort(new Date().toISOString());
             footer.appendChild(timeSpan);
 
-            // --- 转发按钮（所有消息）SVG ---
-            const forwardBtn = document.createElement('button');
-            forwardBtn.className = 'action-btn';
-            forwardBtn.title = '转发（复制内容）';
-            forwardBtn.innerHTML = `
-                <svg viewBox="0 0 24 24">
-                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                    <polyline points="16 6 12 2 8 6"/>
-                    <line x1="12" y1="2" x2="12" y2="15"/>
-                </svg>
-            `;
-            forwardBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const textToCopy = content || '';
-                if (!textToCopy) return;
-                const imageMatch2 = textToCopy.match(/!\[image\]\((.*?)\)/);
-                const copyText = imageMatch2 ? imageMatch2[1] : textToCopy;
-                navigator.clipboard.writeText(copyText).then(() => {
-                    const tip = document.createElement('span');
-                    tip.textContent = '✅ 已复制';
-                    tip.style.cssText = 'color:#4ade80;font-size:11px;margin-left:4px;';
-                    footer.appendChild(tip);
-                    setTimeout(() => tip.remove(), 2000);
-                }).catch(() => {
-                    alert('复制失败，请手动复制');
-                });
-            });
-            footer.appendChild(forwardBtn);
-
-            // --- 编辑按钮（仅自己、非撤回、1分钟内） ---
             const isRecalled = content === '（已撤回）';
-            if (isMe && created_at && !isRecalled) {
-                const msgTime = new Date(created_at).getTime();
-                const diffMinutes = (Date.now() - msgTime) / 1000 / 60;
-                if (diffMinutes < 1) {
-                    const editBtn = document.createElement('button');
-                    editBtn.className = 'action-btn';
-                    editBtn.title = '编辑（1分钟内）';
-                    editBtn.innerHTML = `
-                        <svg viewBox="0 0 24 24">
-                            <path d="M12 20h9"/>
-                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                        </svg>
-                    `;
-                    editBtn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const rawContent = content || '';
-                        chatInput.value = rawContent;
-                        chatInput.focus();
-                        chatInput.classList.add('editing');
-                        editingMessageId = id;
-                        // 提示
-                        const tip = document.createElement('span');
-                        tip.textContent = '✏️ 编辑中';
-                        tip.style.cssText = 'color:#fbbf24;font-size:11px;margin-left:4px;';
-                        footer.appendChild(tip);
-                        setTimeout(() => tip.remove(), 3000);
-                        chatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    });
-                    footer.appendChild(editBtn);
-                }
 
-                // 撤回按钮（2分钟内）
-                const diffMinutes2 = (Date.now() - new Date(created_at).getTime()) / 1000 / 60;
-                if (diffMinutes2 < 2) {
-                    const recallBtn = document.createElement('button');
-                    recallBtn.className = 'recall-btn';
-                    recallBtn.dataset.messageId = id;
-                    recallBtn.textContent = '撤回';
-                    recallBtn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        window.recallMessage(id);
+            // 如果已撤回，不显示任何操作按钮（编辑、转发、撤回都不显示）
+            if (!isRecalled) {
+                // --- 转发按钮（所有未撤回消息） ---
+                const forwardBtn = document.createElement('button');
+                forwardBtn.className = 'action-btn';
+                forwardBtn.title = '转发（复制内容）';
+                forwardBtn.innerHTML = `
+                    <svg viewBox="0 0 24 24">
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                        <polyline points="16 6 12 2 8 6"/>
+                        <line x1="12" y1="2" x2="12" y2="15"/>
+                    </svg>
+                `;
+                forwardBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const textToCopy = content || '';
+                    if (!textToCopy) return;
+                    const imageMatch2 = textToCopy.match(/!\[image\]\((.*?)\)/);
+                    const copyText = imageMatch2 ? imageMatch2[1] : textToCopy;
+                    navigator.clipboard.writeText(copyText).then(() => {
+                        const tip = document.createElement('span');
+                        tip.textContent = '✅ 已复制';
+                        tip.style.cssText = 'color:#4ade80;font-size:11px;margin-left:4px;';
+                        footer.appendChild(tip);
+                        setTimeout(() => tip.remove(), 2000);
+                    }).catch(() => {
+                        alert('复制失败，请手动复制');
                     });
-                    recallBtn.addEventListener('touchstart', function(e) {
-                        e.stopPropagation();
-                        window.recallMessage(id);
-                    }, { passive: false });
-                    footer.appendChild(recallBtn);
+                });
+                footer.appendChild(forwardBtn);
+
+                // --- 编辑按钮（仅自己、非撤回、1分钟内） ---
+                if (isMe && created_at) {
+                    const msgTime = new Date(created_at).getTime();
+                    const diffMinutes = (Date.now() - msgTime) / 1000 / 60;
+                    if (diffMinutes < 1) {
+                        const editBtn = document.createElement('button');
+                        editBtn.className = 'action-btn';
+                        editBtn.title = '编辑（1分钟内）';
+                        editBtn.innerHTML = `
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 20h9"/>
+                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                            </svg>
+                        `;
+                        editBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const rawContent = content || '';
+                            chatInput.value = rawContent;
+                            chatInput.focus();
+                            chatInput.classList.add('editing');
+                            editingMessageId = id;
+                            // 提示
+                            const tip = document.createElement('span');
+                            tip.textContent = '✏️ 编辑中';
+                            tip.style.cssText = 'color:#fbbf24;font-size:11px;margin-left:4px;';
+                            footer.appendChild(tip);
+                            setTimeout(() => tip.remove(), 3000);
+                            chatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        });
+                        footer.appendChild(editBtn);
+                    }
+
+                    // 撤回按钮（2分钟内）
+                    const diffMinutes2 = (Date.now() - new Date(created_at).getTime()) / 1000 / 60;
+                    if (diffMinutes2 < 2) {
+                        const recallBtn = document.createElement('button');
+                        recallBtn.className = 'recall-btn';
+                        recallBtn.dataset.messageId = id;
+                        recallBtn.textContent = '撤回';
+                        recallBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            window.recallMessage(id);
+                        });
+                        recallBtn.addEventListener('touchstart', function(e) {
+                            e.stopPropagation();
+                            window.recallMessage(id);
+                        }, { passive: false });
+                        footer.appendChild(recallBtn);
+                    }
                 }
             }
 
@@ -2290,6 +2304,9 @@
                     if (messageId) window.recallMessage(messageId);
                 }
             }, { passive: false });
+
+            // 启用发送按钮
+            btnSend.disabled = false;
         }
 
         function handleScroll() {
@@ -2328,6 +2345,7 @@
             updateOnlineUI();
             editingMessageId = null;
             chatInput.classList.remove('editing');
+            btnSend.disabled = true;
         }
 
         // ==========================================
@@ -2340,6 +2358,10 @@
             }
             content = content.trim();
             if (!content) return;
+
+            // 防止重复发送
+            if (isSending) return;
+            isSending = true;
 
             const senderName = currentDisplayName || currentEmail.split('@')[0];
 
@@ -2390,6 +2412,7 @@
                         addMessageToBottom(realMsg);
                     }
                     chatInput.value = '';
+                    isSending = false;
                     return;
                 } catch (err) {
                     console.error('编辑失败:', err);
@@ -2397,6 +2420,7 @@
                     setTimeout(() => {
                         if (authMessage.textContent === '编辑失败，请重试') authMessage.textContent = '';
                     }, 3000);
+                    isSending = false;
                     return;
                 }
             }
@@ -2413,6 +2437,8 @@
                 avatar_url: currentAvatarUrl || getDefaultAvatar(currentEmail)
             };
             addMessageToBottom(tempMsg);
+            // 立即清空输入框，防止重复发送
+            chatInput.value = '';
 
             try {
                 const { data, error } = await supabase
@@ -2446,8 +2472,7 @@
                     }
                 }
 
-                if (chatInput.value) chatInput.value = '';
-
+                // 输入框已清空，无需再清
             } catch (err) {
                 console.error('发送失败:', err);
                 const tempEl = messageList.querySelector(`[data-message-id="${tempMsg.id}"]`);
@@ -2456,6 +2481,8 @@
                 setTimeout(() => {
                     if (authMessage.textContent === '消息发送失败，请重试') authMessage.textContent = '';
                 }, 3000);
+            } finally {
+                isSending = false;
             }
         }
 
@@ -2683,10 +2710,28 @@
                                 contentDiv.className = 'message-content';
                             }
                         }
-                        const footer = el.querySelector('.message-footer');
-                        if (footer && updated.content === '（已撤回）') {
-                            const recallBtn = footer.querySelector('.recall-btn');
-                            if (recallBtn) recallBtn.remove();
+                        // 更新后重新创建消息元素以刷新按钮（因为撤回后要隐藏按钮）
+                        // 但这里直接刷新整个消息列表最简单，但为了性能，可以只替换该元素
+                        // 简单起见，刷新消息列表（但可能会丢失滚动位置）
+                        // 更好的做法是重新生成该消息的DOM
+                        if (updated.content === '（已撤回）') {
+                            // 重新生成该消息
+                            const oldEl = el;
+                            const parent = oldEl.parentNode;
+                            // 构造一个msg对象
+                            const msgObj = {
+                                id: updated.id,
+                                content: updated.content,
+                                sender_name: updated.sender_name,
+                                sender_email: updated.sender_email,
+                                isMe: (updated.sender_email === currentEmail),
+                                time: formatTimeShort(updated.created_at),
+                                created_at: updated.created_at,
+                                avatar_url: currentUserMap[updated.sender_email]?.avatar_url || getDefaultAvatar(
+                                    updated.sender_email)
+                            };
+                            const newEl = createMessageElement(msgObj);
+                            parent.replaceChild(newEl, oldEl);
                         }
                     });
                 } catch (e) {
@@ -2792,19 +2837,27 @@
         };
 
         // ==========================================
-        // 图片上传（聊天图片）
+        // 处理粘贴图片
         // ==========================================
-        attachBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            fileInput.click();
+        chatInput.addEventListener('paste', function(e) {
+            const items = e.clipboardData.items;
+            for (let item of items) {
+                if (item.type.indexOf('image') !== -1) {
+                    e.preventDefault();
+                    const file = item.getAsFile();
+                    if (file) {
+                        // 调用图片上传逻辑（复用 attach 的流程）
+                        handleImageFile(file);
+                    }
+                    return;
+                }
+            }
         });
 
-        fileInput.addEventListener('change', async function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            if (!file.type.startsWith('image/')) {
+        // 抽取图片上传逻辑
+        async function handleImageFile(file) {
+            if (!file || !file.type.startsWith('image/')) {
                 setAuthMessage('请选择图片文件', 'error');
-                fileInput.value = '';
                 return;
             }
 
@@ -2820,7 +2873,6 @@
 
             if (processedFile.size > 20 * 1024 * 1024) {
                 setAuthMessage('图片不能超过 20MB', 'error');
-                fileInput.value = '';
                 return;
             }
 
@@ -2856,9 +2908,22 @@
                 setTimeout(() => {
                     if (authMessage.textContent === '图片上传失败，请重试') authMessage.textContent = '';
                 }, 3000);
-            } finally {
-                fileInput.value = '';
             }
+        }
+
+        // ==========================================
+        // 图片上传（聊天图片） - 使用按钮
+        // ==========================================
+        attachBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            await handleImageFile(file);
+            fileInput.value = '';
         });
 
         // ==========================================
@@ -3064,7 +3129,7 @@
         })();
 
         loadTheme();
-        console.log('✅ MiniChat 已更新：编辑改为1分钟+删除旧消息，图标已替换为SVG');
+        console.log('✅ MiniChat 已更新：防重复发送、粘贴图片、撤回消息禁用操作、按钮颜色优化');
     </script>
     <script>
         if ('serviceWorker' in navigator) {
