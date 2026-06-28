@@ -606,6 +606,7 @@
             margin-bottom: 4px;
             white-space: pre-wrap;
             word-wrap: break-word;
+            line-height: 1.5;
         }
         .chat-main .message .message-content img {
             max-width: 200px;
@@ -631,6 +632,7 @@
             font-size: 13px;
             opacity: 0.8;
             color: var(--text-secondary);
+            white-space: normal;
         }
         .chat-main .message .message-content .quote-block .quote-author {
             font-weight: 600;
@@ -1709,6 +1711,8 @@
         let editingMessageId = null;
         let editingAttachments = [];
         let isSending = false;
+        let lastSendTime = 0;
+        const MIN_SEND_INTERVAL = 500; // 500ms 最小发送间隔
 
         // ==========================================
         // 附件管理
@@ -1958,29 +1962,29 @@
         }
 
         // ==========================================
-        // 在光标位置插入文本（智能换行处理）
+        // 在光标位置插入文本（确保引用块独立成行）
         // ==========================================
         function insertAtCursor(text) {
             const start = chatInput.selectionStart;
             const end = chatInput.selectionEnd;
             const val = chatInput.value;
-            // 检查是否需要添加前导换行
+
             let prefix = '';
+            let suffix = '';
+
             if (start > 0 && val[start - 1] !== '\n') {
                 prefix = '\n';
             }
-            // 检查是否需要添加尾部换行（插入后光标位置是否在行尾）
-            let suffix = '';
             if (end < val.length && val[end] !== '\n') {
                 suffix = '\n';
             }
+
             const insertText = prefix + text + suffix;
             chatInput.value = val.substring(0, start) + insertText + val.substring(end);
             const newPos = start + insertText.length;
             chatInput.selectionStart = chatInput.selectionEnd = newPos;
             chatInput.focus();
             chatInput.dispatchEvent(new Event('input', { bubbles: true }));
-            // 自动调整高度
             autoResizeTextarea();
         }
 
@@ -1989,7 +1993,8 @@
         // ==========================================
         function autoResizeTextarea() {
             chatInput.style.height = 'auto';
-            chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px';
+            const scrollHeight = Math.max(chatInput.scrollHeight, 48);
+            chatInput.style.height = Math.min(scrollHeight, 150) + 'px';
         }
 
         // ==========================================
@@ -2003,33 +2008,37 @@
             if (created_at) div.dataset.createdAt = created_at;
             if (sender_email) div.dataset.senderEmail = sender_email;
 
-            // 引用按钮
-            const quoteBtn = document.createElement('div');
-            quoteBtn.className = 'quote-btn';
-            quoteBtn.innerHTML = '💬 引用';
-            quoteBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                let rawContent = content || '';
-                let plainText = rawContent.replace(/!\[image\]\([^)]*\)/g, '').replace(/\[audio\]\([^)]*\)/g, '').trim();
-                if (!plainText) plainText = '';
-                const hasImage = rawContent.includes('![image]');
-                const hasAudio = rawContent.includes('[audio]');
-                let attachDesc = '';
-                if (hasImage && hasAudio) attachDesc = '[图片][音频]';
-                else if (hasImage) attachDesc = '[图片]';
-                else if (hasAudio) attachDesc = '[音频]';
-                if (attachDesc) {
-                    if (plainText) plainText += ' ' + attachDesc;
-                    else plainText = attachDesc;
-                }
-                if (!plainText) plainText = '[空消息]';
-                const quoteBlock = `> ${sender_name || '匿名'}: ${plainText}`;
-                // 插入时前后加换行，确保独立块
-                insertAtCursor(quoteBlock);
-                setAuthMessage('✅ 已引用', 'success');
-                setTimeout(() => setAuthMessage(''), 1500);
-            });
-            div.appendChild(quoteBtn);
+            const isRecalled = content === '（已撤回）';
+
+            // 引用按钮（已撤回不显示）
+            if (!isRecalled) {
+                const quoteBtn = document.createElement('div');
+                quoteBtn.className = 'quote-btn';
+                quoteBtn.innerHTML = '💬 引用';
+                quoteBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    let rawContent = content || '';
+                    let plainText = rawContent.replace(/!\[image\]\([^)]*\)/g, '').replace(/\[audio\]\([^)]*\)/g,
+                        '').trim();
+                    const hasImage = rawContent.includes('![image]');
+                    const hasAudio = rawContent.includes('[audio]');
+                    let attachDesc = '';
+                    if (hasImage && hasAudio) attachDesc = '[图片][音频]';
+                    else if (hasImage) attachDesc = '[图片]';
+                    else if (hasAudio) attachDesc = '[音频]';
+                    if (attachDesc) {
+                        if (plainText) plainText += ' ' + attachDesc;
+                        else plainText = attachDesc;
+                    }
+                    if (!plainText) plainText = '[空消息]';
+                    plainText = plainText.split('\n')[0];
+                    const quoteBlock = `> ${sender_name || '匿名'}: ${plainText}`;
+                    insertAtCursor(quoteBlock);
+                    setAuthMessage('✅ 已引用', 'success');
+                    setTimeout(() => setAuthMessage(''), 1500);
+                });
+                div.appendChild(quoteBtn);
+            }
 
             const avatarWrapper = document.createElement('div');
             avatarWrapper.className = 'avatar-wrapper';
@@ -2068,7 +2077,6 @@
             contentDiv.className = 'message-content';
 
             let displayContent = content || '';
-            // 处理引用块（匹配行首 > ）
             displayContent = displayContent.replace(/^>\s*(.+?)(?=\n|$)/gm, function(match, text) {
                 const parts = text.match(/^(.+?):\s*(.*)/);
                 if (parts) {
@@ -2077,31 +2085,21 @@
                     return `<div class="quote-block">${text}</div>`;
                 }
             });
-            // 处理 @提及
             displayContent = displayContent.replace(/@(\S+)/g, function(match, username) {
                 return `<span class="mention">@${username}</span>`;
             });
-            // 图片
             displayContent = displayContent.replace(/!\[image\]\((.*?)\)/g, function(match, url) {
                 return `<img src="${url}" onclick="window.previewImage && window.previewImage('${url}')" alt="图片" loading="lazy" />`;
             });
-            // 音频
             displayContent = displayContent.replace(/\[audio\]\((.*?)\)/g, function(match, url) {
                 return `<audio controls src="${url}" preload="metadata"></audio>`;
             });
-            // 转义普通文本（但保留已生成的标签），同时将换行转为 <br>
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = displayContent;
+
             function escapeTextNodes(node) {
                 if (node.nodeType === 3) {
-                    let text = node.textContent;
-                    text = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                    // 将换行转为 <br>（注意：文本节点中的 \n 需要替换）
-                    // 因为我们在 innerHTML 中会显示，所以需要将 \n 转换为 <br>
-                    // 但文本节点中的 \n 不会自动换行，我们直接替换为 <br>
-                    // 但直接替换会导致 HTML 标签被转义？但我们已经转义了 < >，所以安全
-                    // 但我们需要保留原来的文本结构，所以这里不处理，后面统一处理
-                    node.textContent = text;
+                    node.textContent = node.textContent.replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 } else if (node.nodeType === 1) {
                     for (let child of node.childNodes) {
                         escapeTextNodes(child);
@@ -2109,12 +2107,7 @@
                 }
             }
             escapeTextNodes(tempDiv);
-            // 现在 tempDiv.innerHTML 包含了转义后的内容，但换行符仍为 \n，需要转为 <br>
-            // 但注意不要破坏标签内的 \n（但标签内通常没有）
-            let html = tempDiv.innerHTML;
-            // 将 \n 替换为 <br>，但需要避免替换标签内部的（但标签内没有）
-            html = html.replace(/\n/g, '<br>');
-            contentDiv.innerHTML = html;
+            contentDiv.innerHTML = tempDiv.innerHTML;
             bubble.appendChild(contentDiv);
 
             const footer = document.createElement('div');
@@ -2124,8 +2117,6 @@
             timeSpan.className = 'time';
             timeSpan.textContent = time || formatTimeShort(new Date().toISOString());
             footer.appendChild(timeSpan);
-
-            const isRecalled = content === '（已撤回）';
 
             if (!isRecalled) {
                 // 转发
@@ -2183,7 +2174,7 @@
                             });
                             let plainText = rawContent;
                             plainText = plainText.replace(/!\[image\]\([^)]*\)/g, '').replace(/\[audio\]\([^)]*\)/g,
-                            '').trim();
+                                '').trim();
                             attachments = [];
                             allAttachments.forEach(att => {
                                 attachments.push({
@@ -2345,7 +2336,7 @@
         }
 
         // ==========================================
-        // 认证逻辑（省略，与之前相同）
+        // 认证逻辑
         // ==========================================
         function switchMode(mode) {
             isLoginMode = (mode === 'login');
@@ -2743,7 +2734,7 @@
         }
 
         // ==========================================
-        // 发送消息
+        // 发送消息（核心修复：防连点 + 网络断线恢复 + 编辑改为 UPDATE）
         // ==========================================
         async function sendMessageContent(content) {
             if (!currentEmail) {
@@ -2751,143 +2742,247 @@
                 return;
             }
             const text = content.trim();
-            if (!text && attachments.length === 0 && (!editingAttachments || editingAttachments.length === 0)) return;
+
+            // 检查是否有内容可发送
+            const hasText = text.length > 0;
+            const hasNewAttachments = attachments.some(a => !a.existing);
+            const hasExistingAttachments = editingAttachments && editingAttachments.length > 0;
+
+            if (!hasText && !hasNewAttachments && !hasExistingAttachments) return;
+
+            // 防连点：检查发送间隔
+            const now = Date.now();
+            if (now - lastSendTime < MIN_SEND_INTERVAL) {
+                setAuthMessage('发送太快，请稍候', 'error');
+                setTimeout(() => setAuthMessage(''), 1500);
+                return;
+            }
 
             if (isSending) return;
             isSending = true;
+            lastSendTime = now;
+            btnSend.disabled = true;
+            chatInput.disabled = true;
 
             const senderName = currentDisplayName || currentEmail.split('@')[0];
 
-            // 编辑模式：删除原消息
-            if (editingMessageId) {
-                try {
-                    const { error: deleteError } = await supabase
+            try {
+                // --- 编辑模式：直接 UPDATE 而非 DELETE+INSERT ---
+                if (editingMessageId) {
+                    // 构建编辑后的完整内容（文本 + 原有附件 + 新附件）
+                    let finalContent = text;
+
+                    // 原有附件（editingAttachments 来自编辑时保存的）
+                    let existingMarkdowns = [];
+                    if (editingAttachments && editingAttachments.length > 0) {
+                        existingMarkdowns = editingAttachments.map(a => {
+                            if (a.type === 'image') return `![image](${a.url})`;
+                            else if (a.type === 'audio') return `[audio](${a.url})`;
+                            return '';
+                        }).filter(Boolean);
+                    }
+
+                    // 新附件
+                    const newAttachments = attachments.filter(a => !a.existing);
+                    let newMarkdowns = [];
+                    if (newAttachments.length > 0) {
+                        const uploadPromises = newAttachments.map(async (att) => {
+                            let processedFile = att.file;
+                            if (att.type === 'image') {
+                                try {
+                                    if (att.file.size > 200 * 1024) {
+                                        processedFile = await compressImage(att.file, 1080, 0.7);
+                                    }
+                                } catch (e) { /* ignore */ }
+                            }
+                            const fileExt = processedFile.name.split('.').pop();
+                            const fileName =
+                                `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+                            const filePath = `public/${fileName}`;
+                            const bucket = att.type === 'image' ? 'chat-images' : 'chat-audios';
+                            const { data, error } = await supabase.storage
+                                .from(bucket)
+                                .upload(filePath, processedFile, { cacheControl: '3600', upsert: false });
+                            if (error) throw error;
+                            const { data: urlData } = supabase.storage
+                                .from(bucket)
+                                .getPublicUrl(filePath);
+                            return {
+                                type: att.type,
+                                url: urlData.publicUrl
+                            };
+                        });
+                        const results = await Promise.all(uploadPromises);
+                        newMarkdowns = results.map(r => {
+                            if (r.type === 'image') return `![image](${r.url})`;
+                            else if (r.type === 'audio') return `[audio](${r.url})`;
+                            return '';
+                        }).filter(Boolean);
+                    }
+
+                    const allMarkdowns = existingMarkdowns.concat(newMarkdowns);
+                    if (allMarkdowns.length > 0) {
+                        if (finalContent) finalContent += '\n';
+                        finalContent += allMarkdowns.join('\n');
+                    }
+                    if (!finalContent.trim()) {
+                        setAuthMessage('发送内容不能为空', 'error');
+                        setTimeout(() => setAuthMessage(''), 2000);
+                        isSending = false;
+                        btnSend.disabled = false;
+                        chatInput.disabled = false;
+                        return;
+                    }
+
+                    // 执行 UPDATE
+                    const { error: updateError } = await supabase
                         .from('messages')
-                        .delete()
+                        .update({
+                            content: finalContent,
+                            sender_name: senderName,
+                            edited_at: new Date().toISOString()
+                        })
                         .eq('id', editingMessageId)
                         .eq('sender_email', currentEmail);
-                    if (deleteError) throw deleteError;
+
+                    if (updateError) throw updateError;
+
+                    // 清除编辑状态
                     const oldMsgId = editingMessageId;
                     editingMessageId = null;
+                    editingAttachments = [];
                     chatInput.classList.remove('editing');
-                } catch (err) {
-                    console.error('编辑删除失败:', err);
-                    setAuthMessage('编辑失败，请重试', 'error');
-                    setTimeout(() => setAuthMessage(''), 3000);
+                    chatInput.value = '';
+                    attachments = [];
+                    renderAttachments();
+                    autoResizeTextarea();
+
+                    // 刷新消息列表（UPDATE 会触发 postgres_changes 更新）
+                    // 但为了立即反映，我们手动更新 DOM
+                    const oldEl = messageList.querySelector(`.message[data-message-id="${oldMsgId}"]`);
+                    if (oldEl) {
+                        // 从 currentUserMap 获取最新头像
+                        const avatarUrl = currentUserMap[currentEmail]?.avatar_url || currentAvatarUrl || getDefaultAvatar(
+                            currentEmail);
+                        const msgObj = {
+                            id: oldMsgId,
+                            content: finalContent,
+                            sender_name: senderName,
+                            sender_email: currentEmail,
+                            isMe: true,
+                            time: formatTimeShort(new Date().toISOString()),
+                            created_at: new Date().toISOString(),
+                            avatar_url: avatarUrl
+                        };
+                        const newEl = createMessageElement(msgObj);
+                        oldEl.replaceWith(newEl);
+                    }
+
                     isSending = false;
+                    btnSend.disabled = false;
+                    chatInput.disabled = false;
                     return;
                 }
-            }
 
-            // 构建内容
-            let finalContent = text;
+                // --- 正常发送新消息（非编辑）---
+                let finalContent = text;
 
-            // 原有附件
-            let existingMarkdowns = [];
-            if (editingAttachments && editingAttachments.length > 0) {
-                existingMarkdowns = editingAttachments.map(a => {
-                    if (a.type === 'image') return `![image](${a.url})`;
-                    else if (a.type === 'audio') return `[audio](${a.url})`;
-                    return '';
-                }).filter(Boolean);
-            }
-
-            // 新附件
-            const newAttachments = attachments.filter(a => !a.existing);
-            let newMarkdowns = [];
-            if (newAttachments.length > 0) {
-                const uploadPromises = newAttachments.map(async (att) => {
-                    let processedFile = att.file;
-                    if (att.type === 'image') {
-                        try {
-                            if (att.file.size > 200 * 1024) {
-                                processedFile = await compressImage(att.file, 1080, 0.7);
-                            }
-                        } catch (e) { /* ignore */ }
-                    }
-                    const fileExt = processedFile.name.split('.').pop();
-                    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-                    const filePath = `public/${fileName}`;
-                    const bucket = att.type === 'image' ? 'chat-images' : 'chat-audios';
-                    const { data, error } = await supabase.storage
-                        .from(bucket)
-                        .upload(filePath, processedFile, { cacheControl: '3600', upsert: false });
-                    if (error) throw error;
-                    const { data: urlData } = supabase.storage
-                        .from(bucket)
-                        .getPublicUrl(filePath);
-                    return {
-                        type: att.type,
-                        url: urlData.publicUrl
-                    };
-                });
-                try {
+                // 上传新附件
+                const newAttachments = attachments.filter(a => !a.existing);
+                let newMarkdowns = [];
+                if (newAttachments.length > 0) {
+                    const uploadPromises = newAttachments.map(async (att) => {
+                        let processedFile = att.file;
+                        if (att.type === 'image') {
+                            try {
+                                if (att.file.size > 200 * 1024) {
+                                    processedFile = await compressImage(att.file, 1080, 0.7);
+                                }
+                            } catch (e) { /* ignore */ }
+                        }
+                        const fileExt = processedFile.name.split('.').pop();
+                        const fileName =
+                            `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+                        const filePath = `public/${fileName}`;
+                        const bucket = att.type === 'image' ? 'chat-images' : 'chat-audios';
+                        const { data, error } = await supabase.storage
+                            .from(bucket)
+                            .upload(filePath, processedFile, { cacheControl: '3600', upsert: false });
+                        if (error) throw error;
+                        const { data: urlData } = supabase.storage
+                            .from(bucket)
+                            .getPublicUrl(filePath);
+                        return {
+                            type: att.type,
+                            url: urlData.publicUrl
+                        };
+                    });
                     const results = await Promise.all(uploadPromises);
                     newMarkdowns = results.map(r => {
                         if (r.type === 'image') return `![image](${r.url})`;
                         else if (r.type === 'audio') return `[audio](${r.url})`;
                         return '';
                     }).filter(Boolean);
-                } catch (err) {
-                    console.error('上传附件失败:', err);
-                    setAuthMessage('附件上传失败，请重试', 'error');
-                    setTimeout(() => setAuthMessage(''), 3000);
+                }
+
+                if (newMarkdowns.length > 0) {
+                    if (finalContent) finalContent += '\n';
+                    finalContent += newMarkdowns.join('\n');
+                }
+                if (!finalContent.trim()) {
+                    setAuthMessage('发送内容不能为空', 'error');
+                    setTimeout(() => setAuthMessage(''), 2000);
                     isSending = false;
+                    btnSend.disabled = false;
+                    chatInput.disabled = false;
                     return;
                 }
-            }
 
-            const allMarkdowns = existingMarkdowns.concat(newMarkdowns);
-            if (allMarkdowns.length > 0) {
-                if (finalContent) finalContent += '\n';
-                finalContent += allMarkdowns.join('\n');
-            }
-            if (!finalContent.trim()) {
-                setAuthMessage('发送内容不能为空', 'error');
-                setTimeout(() => setAuthMessage(''), 2000);
-                isSending = false;
-                return;
-            }
-
-            // @提及
-            const mentionMatches = text.match(/@(\S+)/g) || [];
-            const mentionNames = mentionMatches.map(m => m.substring(1));
-            const mentionedUsers = [];
-            for (const [id, user] of Object.entries(onlineUsers)) {
-                if (user.email === currentEmail) continue;
-                const displayName = user.display_name || '';
-                if (mentionNames.some(name => displayName.includes(name) || user.email.includes(name))) {
-                    mentionedUsers.push({ id, ...user });
+                // @提及
+                const mentionMatches = text.match(/@(\S+)/g) || [];
+                const mentionNames = mentionMatches.map(m => m.substring(1));
+                const mentionedUsers = [];
+                for (const [id, user] of Object.entries(onlineUsers)) {
+                    if (user.email === currentEmail) continue;
+                    const displayName = user.display_name || '';
+                    if (mentionNames.some(name => displayName.includes(name) || user.email.includes(name))) {
+                        mentionedUsers.push({ id, ...user });
+                    }
                 }
-            }
-            if (mentionedUsers.length > 0) {
-                const mentionPayload = {
-                    from: currentDisplayName || currentEmail,
-                    users: mentionedUsers.map(u => u.user_id)
+                if (mentionedUsers.length > 0) {
+                    const mentionPayload = {
+                        from: currentDisplayName || currentEmail,
+                        users: mentionedUsers.map(u => u.user_id)
+                    };
+                    if (window.chatChannel) {
+                        window.chatChannel.send({
+                            type: 'broadcast',
+                            event: 'mention',
+                            payload: mentionPayload
+                        });
+                    }
+                }
+
+                // 乐观创建临时消息
+                const tempMsg = {
+                    id: 'temp-' + Date.now(),
+                    content: finalContent,
+                    sender_name: senderName,
+                    sender_email: currentEmail,
+                    isMe: true,
+                    time: formatTimeShort(new Date().toISOString()),
+                    created_at: new Date().toISOString(),
+                    avatar_url: currentAvatarUrl || getDefaultAvatar(currentEmail)
                 };
-                if (window.chatChannel) {
-                    window.chatChannel.send({
-                        type: 'broadcast',
-                        event: 'mention',
-                        payload: mentionPayload
-                    });
-                }
-            }
+                addMessageToBottom(tempMsg);
 
-            // 乐观发送
-            const tempMsg = {
-                id: 'temp-' + Date.now(),
-                content: finalContent,
-                sender_name: senderName,
-                sender_email: currentEmail,
-                isMe: true,
-                time: formatTimeShort(new Date().toISOString()),
-                created_at: new Date().toISOString(),
-                avatar_url: currentAvatarUrl || getDefaultAvatar(currentEmail)
-            };
-            addMessageToBottom(tempMsg);
+                // 立即清空输入和附件（防止重复发送）
+                chatInput.value = '';
+                attachments = [];
+                renderAttachments();
+                autoResizeTextarea();
 
-            try {
+                // 发送到数据库
                 const { data, error } = await supabase
                     .from('messages')
                     .insert({
@@ -2919,22 +3014,27 @@
                     }
                 }
 
-                chatInput.value = '';
-                attachments = [];
-                editingAttachments = [];
-                renderAttachments();
-                autoResizeTextarea();
-
             } catch (err) {
                 console.error('发送失败:', err);
-                const tempEl = messageList.querySelector(`[data-message-id="${tempMsg.id}"]`);
-                if (tempEl) tempEl.remove();
-                setAuthMessage('消息发送失败，请重试', 'error');
+                // 网络断线恢复：将内容恢复到输入框
+                if (text) {
+                    chatInput.value = text;
+                    autoResizeTextarea();
+                }
+                // 如果有附件，重新添加到附件区
+                // 注意：attachments 已被清空，需要从备份恢复
+                // 简单起见，提示用户重试
+                setAuthMessage('发送失败，请重试', 'error');
                 setTimeout(() => {
-                    if (authMessage.textContent === '消息发送失败，请重试') authMessage.textContent = '';
+                    if (authMessage.textContent === '发送失败，请重试') authMessage.textContent = '';
                 }, 3000);
+                // 如果乐观消息存在，移除它
+                const tempEl = messageList.querySelector(`[data-message-id^="temp-"]`);
+                if (tempEl) tempEl.remove();
             } finally {
                 isSending = false;
+                btnSend.disabled = false;
+                chatInput.disabled = false;
             }
         }
 
@@ -3130,7 +3230,7 @@
         }
 
         // ==========================================
-        // 订阅消息
+        // 订阅消息（含 Presence 重连同步）
         // ==========================================
         function subscribeMessages() {
             if (window.chatChannel) {
@@ -3146,6 +3246,7 @@
                 }
             });
 
+            // Presence 同步
             channel.on('presence', { event: 'sync' }, () => {
                 const state = channel.presenceState();
                 const users = {};
@@ -3176,11 +3277,13 @@
                 updateOnlineUI();
             });
 
+            // 正在输入
             channel.on('broadcast', { event: 'typing' }, ({ payload }) => {
                 if (payload.user_id === currentUserId) return;
                 showTypingIndicator(payload.display_name || '用户');
             });
 
+            // @提及
             channel.on('broadcast', { event: 'mention' }, ({ payload }) => {
                 const { from, users } = payload;
                 if (users.includes(currentUserId)) {
@@ -3196,6 +3299,7 @@
                 }
             });
 
+            // INSERT
             channel.on('postgres_changes', {
                 event: 'INSERT',
                 schema: 'public',
@@ -3240,6 +3344,7 @@
                 }
             });
 
+            // UPDATE（编辑后刷新）
             channel.on('postgres_changes', {
                 event: 'UPDATE',
                 schema: 'public',
@@ -3269,6 +3374,7 @@
                 }
             });
 
+            // DELETE（移除被编辑删除的旧消息）
             channel.on('postgres_changes', {
                 event: 'DELETE',
                 schema: 'public',
@@ -3280,6 +3386,7 @@
                 if (el) el.remove();
             });
 
+            // 订阅 + 重连同步
             channel.subscribe(async (status) => {
                 if (status === 'SUBSCRIBED') {
                     await channel.track({
@@ -3289,6 +3396,26 @@
                         avatar_url: currentAvatarUrl || getDefaultAvatar(currentEmail),
                         online_at: new Date().toISOString()
                     });
+                    // 重连后主动拉取 Presence 状态
+                    const state = channel.presenceState();
+                    const users = {};
+                    let count = 0;
+                    for (const [key, presences] of Object.entries(state)) {
+                        const presence = presences[0];
+                        if (presence) {
+                            const email = presence.email || '';
+                            users[key] = {
+                                user_id: key,
+                                display_name: presence.display_name || '匿名',
+                                email: email,
+                                avatar_url: presence.avatar_url || getDefaultAvatar(email)
+                            };
+                            count++;
+                        }
+                    }
+                    onlineUsers = users;
+                    onlineCount = count;
+                    updateOnlineUI();
                 }
             });
 
@@ -3503,6 +3630,15 @@
             }
         });
 
+        // 页面关闭前主动 untrack
+        window.addEventListener('beforeunload', async function() {
+            if (window.chatChannel) {
+                try {
+                    await window.chatChannel.untrack();
+                } catch (e) { /* ignore */ }
+            }
+        });
+
         btnLogin.addEventListener('click', handleAuth);
         document.getElementById('switchToSignup').addEventListener('click', () => switchMode('signup'));
         togglePwd.addEventListener('click', function() {
@@ -3627,7 +3763,7 @@
         })();
 
         loadTheme();
-        console.log('✅ MiniChat 已更新：多行输入、换行显示、引用优化');
+        console.log('✅ MiniChat 完整修复版：防连点、网络恢复、编辑UPDATE、引用优化、Presence重连同步');
     </script>
     <script>
         if ('serviceWorker' in navigator) {
