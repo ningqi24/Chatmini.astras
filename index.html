@@ -31,6 +31,7 @@
             --radius-sm: 10px;
             --transition: 0.2s ease;
             --avatar-size: 28px;
+            --mention-color: #fbbf24;
         }
         body.light-theme {
             --bg-primary: #f0f2f5;
@@ -534,6 +535,7 @@
             gap: 8px;
             max-width: 85%;
             animation: fadeIn 0.2s ease;
+            position: relative;
         }
         .chat-main .message.me {
             align-self: flex-end;
@@ -567,6 +569,7 @@
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
             flex: 1;
             min-width: 0;
+            position: relative;
         }
         .chat-main .message.me .bubble {
             background: var(--accent);
@@ -616,20 +619,41 @@
             margin-top: 4px;
             border-radius: 8px;
         }
+        .chat-main .message .message-content .quote-block {
+            border-left: 3px solid var(--accent);
+            padding: 4px 10px;
+            margin: 4px 0 6px 0;
+            background: rgba(128, 128, 128, 0.1);
+            border-radius: 4px;
+            font-size: 13px;
+            opacity: 0.8;
+            color: var(--text-secondary);
+        }
+        .chat-main .message .message-content .quote-block .quote-author {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .chat-main .message .message-content .mention {
+            color: var(--mention-color);
+            font-weight: 600;
+            background: rgba(251, 191, 36, 0.15);
+            padding: 0 4px;
+            border-radius: 3px;
+        }
         .chat-main .message .message-footer {
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            gap: 10px;
+            gap: 6px;
             font-size: 10px;
             opacity: 0.8;
             flex-wrap: wrap;
             margin-top: 2px;
         }
         .chat-main .message .message-footer .action-btn {
-            background: rgba(128, 128, 128, 0.15);
-            border: none;
-            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
             cursor: pointer;
             padding: 2px 6px;
             border-radius: 4px;
@@ -639,11 +663,8 @@
             align-items: center;
             justify-content: center;
             opacity: 0.9;
-        }
-        .chat-main .message .message-footer .action-btn:hover {
-            background: rgba(128, 128, 128, 0.3);
-            color: var(--accent);
-            opacity: 1;
+            font-size: 11px;
+            gap: 3px;
         }
         .chat-main .message .message-footer .action-btn svg {
             width: 14px;
@@ -654,10 +675,15 @@
             stroke-linecap: round;
             stroke-linejoin: round;
         }
+        .chat-main .message .message-footer .action-btn:hover {
+            background: rgba(255, 255, 255, 0.22);
+            color: var(--accent);
+            opacity: 1;
+        }
         .chat-main .message .recall-btn {
-            background: rgba(128, 128, 128, 0.15);
-            border: none;
-            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
             font-size: 11px;
             cursor: pointer;
             padding: 2px 10px;
@@ -667,13 +693,37 @@
             opacity: 0.9;
         }
         .chat-main .message .recall-btn:hover {
-            background: rgba(255, 100, 100, 0.25);
+            background: rgba(255, 100, 100, 0.3);
             color: #f87171;
             opacity: 1;
         }
         .chat-main .message .recalled {
             opacity: 0.6;
             font-style: italic;
+        }
+        /* 引用按钮（悬停显示） */
+        .chat-main .message .quote-btn {
+            display: none;
+            position: absolute;
+            top: -10px;
+            right: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 2px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            box-shadow: var(--shadow);
+            z-index: 10;
+        }
+        .chat-main .message:hover .quote-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .chat-main .message .quote-btn:hover {
+            color: var(--accent);
         }
         /* ===== 用户详情模态框 ===== */
         .user-profile-modal {
@@ -865,6 +915,7 @@
             gap: 8px;
             flex-shrink: 0;
             flex-wrap: wrap;
+            position: relative;
         }
         .chat-main .input-area .input-group {
             flex: 1;
@@ -872,6 +923,7 @@
             align-items: center;
             gap: 8px;
             min-width: 0;
+            position: relative;
         }
         .chat-main .input-area .input-group input[type="text"] {
             flex: 1;
@@ -948,6 +1000,51 @@
             stroke-width: 2;
             stroke-linecap: round;
             stroke-linejoin: round;
+        }
+        /* ===== @提及下拉列表 ===== */
+        .mention-dropdown {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 50;
+            box-shadow: var(--shadow);
+            padding: 4px 0;
+        }
+        .mention-dropdown.active {
+            display: block;
+        }
+        .mention-dropdown .mention-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .mention-dropdown .mention-item:hover {
+            background: var(--bg-hover);
+        }
+        .mention-dropdown .mention-item img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .mention-dropdown .mention-item .name {
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+        .mention-dropdown .mention-item .email {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-left: 4px;
         }
         /* ===== Emoji 面板 ===== */
         .emoji-picker {
@@ -1257,6 +1354,9 @@
             .attachment-area {
                 padding: 4px 12px;
             }
+            .mention-dropdown {
+                bottom: calc(100% + 2px);
+            }
         }
         @media (max-width: 480px) {
             .sidebar {
@@ -1408,6 +1508,8 @@
 
                     <div class="input-group">
                         <input type="text" id="chatInput" placeholder="输入消息…" />
+                        <!-- @提及下拉列表 -->
+                        <div class="mention-dropdown" id="mentionDropdown"></div>
                         <input type="file" id="fileInput" accept="image/*,audio/*" style="display:none;" multiple />
                         <button class="btn-icon" id="attachBtn" title="添加附件（图片/音频）">
                             <svg viewBox="0 0 24 24">
@@ -1561,6 +1663,7 @@
         const emojiBtn = document.getElementById('emojiBtn');
         const emojiPicker = document.getElementById('emojiPicker');
         const attachmentArea = document.getElementById('attachmentArea');
+        const mentionDropdown = document.getElementById('mentionDropdown');
 
         let currentEmail = '';
         let currentUserId = '';
@@ -1588,12 +1691,13 @@
         // 编辑相关变量
         // ==========================================
         let editingMessageId = null;
+        let editingAttachments = []; // 原有附件 { type, url }
         let isSending = false;
 
         // ==========================================
         // 附件管理
         // ==========================================
-        let attachments = []; // 每个元素 { id, file, type: 'image'|'audio', name, url? }
+        let attachments = []; // 每个元素 { id, file, type, name, url?, existing? }
 
         // ==========================================
         // 主题管理
@@ -1838,7 +1942,7 @@
         }
 
         // ==========================================
-        // 创建消息元素（含头像 + 新功能按钮）
+        // 创建消息元素（含头像 + 功能按钮 + 引用+@）
         // ==========================================
         function createMessageElement(msg) {
             const { content, sender_name, sender_email, isMe, time, id, created_at, avatar_url } = msg;
@@ -1847,6 +1951,27 @@
             if (id) div.dataset.messageId = id;
             if (created_at) div.dataset.createdAt = created_at;
             if (sender_email) div.dataset.senderEmail = sender_email;
+
+            // 引用按钮（悬停显示）
+            const quoteBtn = document.createElement('div');
+            quoteBtn.className = 'quote-btn';
+            quoteBtn.innerHTML = '💬 引用';
+            quoteBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                // 提取纯文本内容（去除markdown）
+                let plainText = content || '';
+                plainText = plainText.replace(/!\[image\]\([^)]*\)/g, '').replace(/\[audio\]\([^)]*\)/g, '').trim();
+                if (!plainText) plainText = '[附件]';
+                // 构造引用块
+                const quoteBlock = `> ${sender_name || '匿名'}: ${plainText}`;
+                chatInput.value = chatInput.value ? chatInput.value + '\n' + quoteBlock : quoteBlock;
+                chatInput.focus();
+                chatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // 显示提示
+                setAuthMessage('✅ 已引用', 'success');
+                setTimeout(() => setAuthMessage(''), 1500);
+            });
+            div.appendChild(quoteBtn);
 
             const avatarWrapper = document.createElement('div');
             avatarWrapper.className = 'avatar-wrapper';
@@ -1883,27 +2008,38 @@
 
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
+
+            // 处理内容：引用块、@提及、图片、音频
             let displayContent = content || '';
-            // 处理图片
+            // 处理 > 开头的引用行
+            displayContent = displayContent.replace(/^>\s*(.+?)(?=\n|$)/gm, function(match, text) {
+                // 检查是否包含作者名（格式：> 作者: 内容）
+                const parts = text.match(/^(.+?):\s*(.*)/);
+                if (parts) {
+                    return `<div class="quote-block"><span class="quote-author">${parts[1]}</span> ${parts[2]}</div>`;
+                } else {
+                    return `<div class="quote-block">${text}</div>`;
+                }
+            });
+            // 处理 @提及
+            displayContent = displayContent.replace(/@(\S+)/g, function(match, username) {
+                return `<span class="mention">@${username}</span>`;
+            });
+            // 图片
             displayContent = displayContent.replace(/!\[image\]\((.*?)\)/g, function(match, url) {
                 return `<img src="${url}" onclick="window.previewImage && window.previewImage('${url}')" alt="图片" loading="lazy" />`;
             });
-            // 处理音频 [audio](url)
+            // 音频
             displayContent = displayContent.replace(/\[audio\]\((.*?)\)/g, function(match, url) {
                 return `<audio controls src="${url}" preload="metadata"></audio>`;
             });
-            // 转义普通文本（保留已有HTML标签）
-            // 简单处理：只转义 < > 但保留我们生成的标签
-            // 但因为我们上面已经替换了，所以内容中可能还包含用户输入的文本，需要转义
-            // 分割处理：将内容按标签分割？为了简单，我们使用一个临时容器
+            // 转义普通文本（但保留已生成的标签）
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = displayContent;
-            // 转义文本节点
             function escapeTextNodes(node) {
                 if (node.nodeType === 3) {
                     node.textContent = node.textContent.replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 } else if (node.nodeType === 1) {
-                    // 递归
                     for (let child of node.childNodes) {
                         escapeTextNodes(child);
                     }
@@ -1916,7 +2052,6 @@
             const footer = document.createElement('div');
             footer.className = 'message-footer';
 
-            // 时间
             const timeSpan = document.createElement('span');
             timeSpan.className = 'time';
             timeSpan.textContent = time || formatTimeShort(new Date().toISOString());
@@ -1925,7 +2060,7 @@
             const isRecalled = content === '（已撤回）';
 
             if (!isRecalled) {
-                // --- 转发按钮 ---
+                // 转发按钮
                 const forwardBtn = document.createElement('button');
                 forwardBtn.className = 'action-btn';
                 forwardBtn.title = '转发（复制内容）';
@@ -1938,10 +2073,8 @@
                 `;
                 forwardBtn.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    const textToCopy = content || '';
-                    if (!textToCopy) return;
-                    // 提取纯文本（去除markdown语法）
-                    let plainText = textToCopy.replace(/!\[image\]\([^)]*\)/g, '[图片]');
+                    let plainText = content || '';
+                    plainText = plainText.replace(/!\[image\]\([^)]*\)/g, '[图片]');
                     plainText = plainText.replace(/\[audio\]\([^)]*\)/g, '[音频]');
                     navigator.clipboard.writeText(plainText).then(() => {
                         const tip = document.createElement('span');
@@ -1949,17 +2082,14 @@
                         tip.style.cssText = 'color:#4ade80;font-size:11px;margin-left:4px;';
                         footer.appendChild(tip);
                         setTimeout(() => tip.remove(), 2000);
-                    }).catch(() => {
-                        alert('复制失败，请手动复制');
-                    });
+                    }).catch(() => alert('复制失败'));
                 });
                 footer.appendChild(forwardBtn);
 
-                // --- 编辑按钮（仅自己、非撤回、1分钟内） ---
+                // 编辑（1分钟内）
                 if (isMe && created_at) {
                     const msgTime = new Date(created_at).getTime();
-                    const diffMinutes = (Date.now() - msgTime) / 1000 / 60;
-                    if (diffMinutes < 1) {
+                    if ((Date.now() - msgTime) / 1000 / 60 < 1) {
                         const editBtn = document.createElement('button');
                         editBtn.className = 'action-btn';
                         editBtn.title = '编辑（1分钟内）';
@@ -1971,17 +2101,41 @@
                         `;
                         editBtn.addEventListener('click', function(e) {
                             e.stopPropagation();
-                            // 提取纯文本内容（去除图片/音频标记），只提取文本部分
-                            let rawContent = content || '';
-                            // 移除图片和音频标记
-                            rawContent = rawContent.replace(/!\[image\]\([^)]*\)/g, '').replace(/\[audio\]\([^)]*\)/g, '')
-                                .trim();
-                            chatInput.value = rawContent;
+                            // 解析原消息中的附件
+                            const rawContent = content || '';
+                            const imageMatches = rawContent.match(/!\[image\]\(([^)]+)\)/g) || [];
+                            const audioMatches = rawContent.match(/\[audio\]\(([^)]+)\)/g) || [];
+                            const allAttachments = [];
+                            imageMatches.forEach(m => {
+                                const url = m.match(/\(([^)]+)\)/)[1];
+                                allAttachments.push({ type: 'image', url: url, existing: true });
+                            });
+                            audioMatches.forEach(m => {
+                                const url = m.match(/\(([^)]+)\)/)[1];
+                                allAttachments.push({ type: 'audio', url: url, existing: true });
+                            });
+                            let plainText = rawContent;
+                            plainText = plainText.replace(/!\[image\]\([^)]*\)/g, '').replace(/\[audio\]\([^)]*\)/g,
+                            '').trim();
+                            // 清空当前附件并填入原有附件
+                            attachments = [];
+                            allAttachments.forEach(att => {
+                                attachments.push({
+                                    id: 'existing-' + Date.now() + Math.random(),
+                                    type: att.type,
+                                    url: att.url,
+                                    existing: true,
+                                    name: att.type === 'image' ? '📷 图片' : '🎵 音频'
+                                });
+                            });
+                            renderAttachments();
+                            chatInput.value = plainText;
                             chatInput.focus();
                             chatInput.classList.add('editing');
                             editingMessageId = id;
+                            editingAttachments = allAttachments.map(a => ({ type: a.type, url: a.url }));
                             const tip = document.createElement('span');
-                            tip.textContent = '✏️ 编辑中';
+                            tip.textContent = '✏️ 编辑中（附件已保留）';
                             tip.style.cssText = 'color:#fbbf24;font-size:11px;margin-left:4px;';
                             footer.appendChild(tip);
                             setTimeout(() => tip.remove(), 3000);
@@ -1990,9 +2144,8 @@
                         footer.appendChild(editBtn);
                     }
 
-                    // 撤回按钮（2分钟内）
-                    const diffMinutes2 = (Date.now() - new Date(created_at).getTime()) / 1000 / 60;
-                    if (diffMinutes2 < 2) {
+                    // 撤回（2分钟内）
+                    if ((Date.now() - new Date(created_at).getTime()) / 1000 / 60 < 2) {
                         const recallBtn = document.createElement('button');
                         recallBtn.className = 'recall-btn';
                         recallBtn.dataset.messageId = id;
@@ -2017,7 +2170,7 @@
         }
 
         // ==========================================
-        // 添加消息到列表（复用）
+        // 添加消息到列表
         // ==========================================
         function addMessageToBottom(msg) {
             const div = createMessageElement(msg);
@@ -2125,7 +2278,7 @@
         }
 
         // ==========================================
-        // 认证逻辑
+        // 认证逻辑（省略，与之前相同）
         // ==========================================
         function switchMode(mode) {
             isLoginMode = (mode === 'login');
@@ -2436,6 +2589,7 @@
             onlineCount = 0;
             updateOnlineUI();
             editingMessageId = null;
+            editingAttachments = [];
             chatInput.classList.remove('editing');
             btnSend.disabled = true;
             attachments = [];
@@ -2443,7 +2597,7 @@
         }
 
         // ==========================================
-        // 附件管理
+        // 附件渲染
         // ==========================================
         function renderAttachments() {
             attachmentArea.innerHTML = '';
@@ -2452,8 +2606,12 @@
                 item.className = 'attachment-item';
                 if (att.type === 'image') {
                     const img = document.createElement('img');
-                    img.src = URL.createObjectURL(att.file);
-                    img.alt = att.name;
+                    if (att.url) {
+                        img.src = att.url;
+                    } else {
+                        img.src = URL.createObjectURL(att.file);
+                    }
+                    img.alt = att.name || '图片';
                     item.appendChild(img);
                 } else {
                     const icon = document.createElement('span');
@@ -2463,24 +2621,31 @@
                 }
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'file-name';
-                nameSpan.textContent = att.name;
+                nameSpan.textContent = att.name || (att.type === 'image' ? '图片' : '音频');
                 item.appendChild(nameSpan);
-                const removeBtn = document.createElement('button');
-                removeBtn.className = 'remove-attach';
-                removeBtn.textContent = '×';
-                removeBtn.title = '移除';
-                removeBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    attachments.splice(index, 1);
-                    renderAttachments();
-                });
-                item.appendChild(removeBtn);
+                if (att.existing) {
+                    const lock = document.createElement('span');
+                    lock.textContent = '🔒';
+                    lock.style.fontSize = '12px';
+                    lock.style.marginLeft = '4px';
+                    item.appendChild(lock);
+                } else {
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'remove-attach';
+                    removeBtn.textContent = '×';
+                    removeBtn.title = '移除';
+                    removeBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        attachments.splice(index, 1);
+                        renderAttachments();
+                    });
+                    item.appendChild(removeBtn);
+                }
                 attachmentArea.appendChild(item);
             });
         }
 
         function addAttachment(file) {
-            // 判断类型
             let type = '';
             if (file.type.startsWith('image/')) type = 'image';
             else if (file.type.startsWith('audio/')) type = 'audio';
@@ -2489,7 +2654,6 @@
                 setTimeout(() => setAuthMessage(''), 2000);
                 return;
             }
-            // 限制大小（图片5MB，音频20MB）
             if (type === 'image' && file.size > 5 * 1024 * 1024) {
                 setAuthMessage('图片不能超过5MB', 'error');
                 setTimeout(() => setAuthMessage(''), 2000);
@@ -2510,23 +2674,22 @@
         }
 
         // ==========================================
-        // 发送消息（支持附件和编辑）
+        // 发送消息（支持文本、附件、引用、@）
         // ==========================================
         async function sendMessageContent(content) {
             if (!currentEmail) {
                 alert('请先登录');
                 return;
             }
-            // 如果既没有文本也没有附件，不发送
             const text = content.trim();
-            if (!text && attachments.length === 0) return;
+            if (!text && attachments.length === 0 && (!editingAttachments || editingAttachments.length === 0)) return;
 
             if (isSending) return;
             isSending = true;
 
             const senderName = currentDisplayName || currentEmail.split('@')[0];
 
-            // 处理编辑模式：先删除原消息
+            // 处理编辑模式：删除原消息
             if (editingMessageId) {
                 try {
                     const { error: deleteError } = await supabase
@@ -2538,7 +2701,6 @@
                     const oldMsgId = editingMessageId;
                     editingMessageId = null;
                     chatInput.classList.remove('editing');
-                    // 移除旧DOM（后续由DELETE事件处理）
                 } catch (err) {
                     console.error('编辑删除失败:', err);
                     setAuthMessage('编辑失败，请重试', 'error');
@@ -2548,73 +2710,108 @@
                 }
             }
 
-            // 构建消息内容
+            // 构建最终内容
             let finalContent = text;
-            // 如果文本为空但有附件，不添加空文本
-            if (finalContent === '' && attachments.length > 0) {
-                finalContent = ''; // 留空，后面只拼接附件
-            }
 
-            // 上传所有附件并生成markdown
-            const uploadPromises = attachments.map(async (att) => {
-                let processedFile = att.file;
-                if (att.type === 'image') {
-                    try {
-                        if (att.file.size > 200 * 1024) {
-                            processedFile = await compressImage(att.file, 1080, 0.7);
-                        }
-                    } catch (e) { /* ignore */ }
-                }
-                const fileExt = processedFile.name.split('.').pop();
-                const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-                const filePath = `public/${fileName}`;
-                const bucket = att.type === 'image' ? 'chat-images' : 'chat-audios';
-                const { data, error } = await supabase.storage
-                    .from(bucket)
-                    .upload(filePath, processedFile, { cacheControl: '3600', upsert: false });
-                if (error) throw error;
-                const { data: urlData } = supabase.storage
-                    .from(bucket)
-                    .getPublicUrl(filePath);
-                return {
-                    type: att.type,
-                    url: urlData.publicUrl
-                };
-            });
-
-            let attachmentMarkdowns = [];
-            try {
-                const results = await Promise.all(uploadPromises);
-                attachmentMarkdowns = results.map(r => {
-                    if (r.type === 'image') return `![image](${r.url})`;
-                    else if (r.type === 'audio') return `[audio](${r.url})`;
+            // 原有附件markdown
+            let existingMarkdowns = [];
+            if (editingAttachments && editingAttachments.length > 0) {
+                existingMarkdowns = editingAttachments.map(a => {
+                    if (a.type === 'image') return `![image](${a.url})`;
+                    else if (a.type === 'audio') return `[audio](${a.url})`;
                     return '';
                 }).filter(Boolean);
-            } catch (err) {
-                console.error('上传附件失败:', err);
-                setAuthMessage('附件上传失败，请重试', 'error');
-                setTimeout(() => setAuthMessage(''), 3000);
-                isSending = false;
-                return;
             }
 
-            // 组合内容：文本 + 换行 + 附件（每个换行）
-            let fullContent = finalContent;
-            if (attachmentMarkdowns.length > 0) {
-                if (fullContent) fullContent += '\n';
-                fullContent += attachmentMarkdowns.join('\n');
+            // 新附件上传
+            const newAttachments = attachments.filter(a => !a.existing);
+            let newMarkdowns = [];
+            if (newAttachments.length > 0) {
+                const uploadPromises = newAttachments.map(async (att) => {
+                    let processedFile = att.file;
+                    if (att.type === 'image') {
+                        try {
+                            if (att.file.size > 200 * 1024) {
+                                processedFile = await compressImage(att.file, 1080, 0.7);
+                            }
+                        } catch (e) { /* ignore */ }
+                    }
+                    const fileExt = processedFile.name.split('.').pop();
+                    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+                    const filePath = `public/${fileName}`;
+                    const bucket = att.type === 'image' ? 'chat-images' : 'chat-audios';
+                    const { data, error } = await supabase.storage
+                        .from(bucket)
+                        .upload(filePath, processedFile, { cacheControl: '3600', upsert: false });
+                    if (error) throw error;
+                    const { data: urlData } = supabase.storage
+                        .from(bucket)
+                        .getPublicUrl(filePath);
+                    return {
+                        type: att.type,
+                        url: urlData.publicUrl
+                    };
+                });
+                try {
+                    const results = await Promise.all(uploadPromises);
+                    newMarkdowns = results.map(r => {
+                        if (r.type === 'image') return `![image](${r.url})`;
+                        else if (r.type === 'audio') return `[audio](${r.url})`;
+                        return '';
+                    }).filter(Boolean);
+                } catch (err) {
+                    console.error('上传附件失败:', err);
+                    setAuthMessage('附件上传失败，请重试', 'error');
+                    setTimeout(() => setAuthMessage(''), 3000);
+                    isSending = false;
+                    return;
+                }
             }
-            if (!fullContent.trim()) {
+
+            // 合并所有markdown
+            const allMarkdowns = existingMarkdowns.concat(newMarkdowns);
+            if (allMarkdowns.length > 0) {
+                if (finalContent) finalContent += '\n';
+                finalContent += allMarkdowns.join('\n');
+            }
+            if (!finalContent.trim()) {
                 setAuthMessage('发送内容不能为空', 'error');
                 setTimeout(() => setAuthMessage(''), 2000);
                 isSending = false;
                 return;
             }
 
-            // 乐观创建临时消息（仅当有内容）
+            // 检查@提及，并发送通知给被@的人
+            const mentionMatches = text.match(/@(\S+)/g) || [];
+            const mentionNames = mentionMatches.map(m => m.substring(1));
+            // 查找在线用户中匹配的email或display_name
+            const mentionedUsers = [];
+            for (const [id, user] of Object.entries(onlineUsers)) {
+                if (user.email === currentEmail) continue; // 不@自己
+                const displayName = user.display_name || '';
+                if (mentionNames.some(name => displayName.includes(name) || user.email.includes(name))) {
+                    mentionedUsers.push({ id, ...user });
+                }
+            }
+            // 如果有被@的人，发送广播通知
+            if (mentionedUsers.length > 0) {
+                const mentionPayload = {
+                    from: currentDisplayName || currentEmail,
+                    users: mentionedUsers.map(u => u.user_id)
+                };
+                if (window.chatChannel) {
+                    window.chatChannel.send({
+                        type: 'broadcast',
+                        event: 'mention',
+                        payload: mentionPayload
+                    });
+                }
+            }
+
+            // 乐观创建临时消息
             const tempMsg = {
                 id: 'temp-' + Date.now(),
-                content: fullContent,
+                content: finalContent,
                 sender_name: senderName,
                 sender_email: currentEmail,
                 isMe: true,
@@ -2628,7 +2825,7 @@
                 const { data, error } = await supabase
                     .from('messages')
                     .insert({
-                        content: fullContent,
+                        content: finalContent,
                         sender_name: senderName,
                         sender_email: currentEmail
                     })
@@ -2659,6 +2856,7 @@
                 // 清空输入和附件
                 chatInput.value = '';
                 attachments = [];
+                editingAttachments = [];
                 renderAttachments();
 
             } catch (err) {
@@ -2741,6 +2939,95 @@
         }
 
         // ==========================================
+        // @提及下拉列表
+        // ==========================================
+        let mentionActive = false;
+        let mentionFilter = '';
+
+        chatInput.addEventListener('input', function(e) {
+            const value = this.value;
+            const cursorPos = this.selectionStart;
+            // 检查是否在输入@
+            const lastAt = value.lastIndexOf('@', cursorPos);
+            if (lastAt !== -1) {
+                const textAfterAt = value.substring(lastAt + 1, cursorPos);
+                // 如果@后面没有空格，则触发下拉
+                if (!textAfterAt.includes(' ')) {
+                    mentionFilter = textAfterAt;
+                    mentionActive = true;
+                    renderMentionDropdown(mentionFilter);
+                    mentionDropdown.classList.add('active');
+                    return;
+                }
+            }
+            // 否则隐藏
+            mentionActive = false;
+            mentionDropdown.classList.remove('active');
+            sendTypingEvent();
+        });
+
+        function renderMentionDropdown(filter) {
+            const users = Object.values(onlineUsers).filter(u => u.user_id !== currentUserId);
+            const filtered = users.filter(u => {
+                const name = (u.display_name || '').toLowerCase();
+                const email = (u.email || '').toLowerCase();
+                const f = filter.toLowerCase();
+                return name.includes(f) || email.includes(f);
+            });
+            mentionDropdown.innerHTML = '';
+            if (filtered.length === 0) {
+                const div = document.createElement('div');
+                div.className = 'mention-item';
+                div.textContent = '没有找到用户';
+                div.style.color = 'var(--text-muted)';
+                mentionDropdown.appendChild(div);
+                return;
+            }
+            filtered.forEach(user => {
+                const item = document.createElement('div');
+                item.className = 'mention-item';
+                const img = document.createElement('img');
+                img.src = user.avatar_url || getDefaultAvatar(user.email);
+                img.alt = '';
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'name';
+                nameSpan.textContent = user.display_name || user.email;
+                const emailSpan = document.createElement('span');
+                emailSpan.className = 'email';
+                emailSpan.textContent = user.email;
+                item.appendChild(img);
+                item.appendChild(nameSpan);
+                item.appendChild(emailSpan);
+                item.addEventListener('click', function() {
+                    // 插入 @用户名
+                    const value = chatInput.value;
+                    const cursorPos = chatInput.selectionStart;
+                    const lastAt = value.lastIndexOf('@', cursorPos);
+                    if (lastAt !== -1) {
+                        const before = value.substring(0, lastAt);
+                        const after = value.substring(cursorPos);
+                        const mentionText = '@' + (user.display_name || user.email);
+                        chatInput.value = before + mentionText + ' ' + after;
+                        const newPos = before.length + mentionText.length + 1;
+                        chatInput.selectionStart = chatInput.selectionEnd = newPos;
+                        chatInput.focus();
+                    }
+                    mentionDropdown.classList.remove('active');
+                    mentionActive = false;
+                });
+                mentionDropdown.appendChild(item);
+            });
+        }
+
+        // 点击其他地方关闭下拉
+        document.addEventListener('click', function(e) {
+            if (mentionActive && !mentionDropdown.contains(e.target) && e.target !== chatInput) {
+                mentionDropdown.classList.remove('active');
+                mentionActive = false;
+            }
+        });
+
+        // ==========================================
         // “正在输入…” 功能
         // ==========================================
         let typingStopTimeoutId = null;
@@ -2780,7 +3067,7 @@
         }
 
         // ==========================================
-        // 订阅消息 + Presence + 广播
+        // 订阅消息 + Presence + 广播（含mention监听）
         // ==========================================
         function subscribeMessages() {
             if (window.chatChannel) {
@@ -2826,9 +3113,27 @@
                 updateOnlineUI();
             });
 
+            // 监听“正在输入”
             channel.on('broadcast', { event: 'typing' }, ({ payload }) => {
                 if (payload.user_id === currentUserId) return;
                 showTypingIndicator(payload.display_name || '用户');
+            });
+
+            // 监听@提及
+            channel.on('broadcast', { event: 'mention' }, ({ payload }) => {
+                const { from, users } = payload;
+                if (users.includes(currentUserId)) {
+                    // 弹窗提醒
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        new Notification('📢 有人@了你', {
+                            body: `${from} 在消息中提到了你`,
+                            icon: 'assets/logo.svg'
+                        });
+                    } else {
+                        setAuthMessage(`📢 ${from} 提到了你`, 'success');
+                        setTimeout(() => setAuthMessage(''), 5000);
+                    }
+                }
             });
 
             channel.on('postgres_changes', {
@@ -2884,59 +3189,21 @@
                     const updated = payload.new;
                     const elements = document.querySelectorAll(`.message[data-message-id="${updated.id}"]`);
                     elements.forEach(el => {
-                        const contentDiv = el.querySelector('.message-content');
-                        if (contentDiv) {
-                            if (updated.content === '（已撤回）') {
-                                contentDiv.textContent = '（已撤回）';
-                                contentDiv.className = 'message-content recalled';
-                            } else {
-                                // 重新生成内容
-                                let displayContent = updated.content || '';
-                                displayContent = displayContent.replace(/!\[image\]\((.*?)\)/g, function(match,
-                                url) {
-                                    return `<img src="${url}" onclick="window.previewImage && window.previewImage('${url}')" alt="图片" loading="lazy" />`;
-                                });
-                                displayContent = displayContent.replace(/\[audio\]\((.*?)\)/g, function(match,
-                                    url) {
-                                    return `<audio controls src="${url}" preload="metadata"></audio>`;
-                                });
-                                const tempDiv = document.createElement('div');
-                                tempDiv.innerHTML = displayContent;
-                                // 转义文本节点
-                                function escapeTextNodes(node) {
-                                    if (node.nodeType === 3) {
-                                        node.textContent = node.textContent.replace(/</g, '&lt;').replace(/>/g,
-                                            '&gt;');
-                                    } else if (node.nodeType === 1) {
-                                        for (let child of node.childNodes) {
-                                            escapeTextNodes(child);
-                                        }
-                                    }
-                                }
-                                escapeTextNodes(tempDiv);
-                                contentDiv.innerHTML = tempDiv.innerHTML;
-                                contentDiv.className = 'message-content';
-                            }
-                        }
-                        // 重新生成footer（因为按钮状态可能变化）
-                        if (updated.content === '（已撤回）') {
-                            // 重新生成整个消息
-                            const oldEl = el;
-                            const parent = oldEl.parentNode;
-                            const msgObj = {
-                                id: updated.id,
-                                content: updated.content,
-                                sender_name: updated.sender_name,
-                                sender_email: updated.sender_email,
-                                isMe: (updated.sender_email === currentEmail),
-                                time: formatTimeShort(updated.created_at),
-                                created_at: updated.created_at,
-                                avatar_url: currentUserMap[updated.sender_email]?.avatar_url || getDefaultAvatar(
-                                    updated.sender_email)
-                            };
-                            const newEl = createMessageElement(msgObj);
-                            parent.replaceChild(newEl, oldEl);
-                        }
+                        // 重新生成整个消息
+                        const parent = el.parentNode;
+                        const msgObj = {
+                            id: updated.id,
+                            content: updated.content,
+                            sender_name: updated.sender_name,
+                            sender_email: updated.sender_email,
+                            isMe: (updated.sender_email === currentEmail),
+                            time: formatTimeShort(updated.created_at),
+                            created_at: updated.created_at,
+                            avatar_url: currentUserMap[updated.sender_email]?.avatar_url || getDefaultAvatar(
+                                updated.sender_email)
+                        };
+                        const newEl = createMessageElement(msgObj);
+                        parent.replaceChild(newEl, el);
                     });
                 } catch (e) {
                     console.error('处理消息更新失败:', e);
@@ -3040,7 +3307,7 @@
         };
 
         // ==========================================
-        // 处理粘贴图片
+        // 粘贴图片
         // ==========================================
         chatInput.addEventListener('paste', function(e) {
             const items = e.clipboardData.items;
@@ -3057,7 +3324,7 @@
         });
 
         // ==========================================
-        // 文件选择（按钮）
+        // 文件选择
         // ==========================================
         attachBtn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -3074,26 +3341,33 @@
         });
 
         // ==========================================
-        // 输入框事件（正在输入 + 取消编辑）
+        // 输入框事件（Enter发送，ESC取消编辑）
         // ==========================================
-        chatInput.addEventListener('input', function() {
-            const content = this.value.trim();
-            if (content === '') return;
-            sendTypingEvent();
-        });
-
         chatInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const content = this.value;
+                sendMessageContent(content);
+            }
             if (e.key === 'Escape' && editingMessageId) {
                 editingMessageId = null;
+                editingAttachments = [];
                 this.classList.remove('editing');
                 this.value = '';
+                attachments = [];
+                renderAttachments();
                 setAuthMessage('已取消编辑', 'success');
                 setTimeout(() => setAuthMessage(''), 1500);
             }
         });
 
+        btnSend.addEventListener('click', function() {
+            const content = chatInput.value;
+            sendMessageContent(content);
+        });
+
         // ==========================================
-        // Emoji 选择器
+        // Emoji选择器
         // ==========================================
         let emojiVisible = false;
         emojiBtn.addEventListener('click', function(e) {
@@ -3127,7 +3401,7 @@
         });
 
         // ==========================================
-        // 事件绑定
+        // 其他事件绑定（登录、设置等）
         // ==========================================
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden) {
@@ -3142,19 +3416,6 @@
             const type = authPassword.getAttribute('type') === 'password' ? 'text' : 'password';
             authPassword.setAttribute('type', type);
             this.textContent = type === 'password' ? '显示' : '隐藏';
-        });
-
-        chatInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                const content = this.value;
-                sendMessageContent(content);
-            }
-        });
-
-        btnSend.addEventListener('click', function() {
-            const content = chatInput.value;
-            sendMessageContent(content);
         });
 
         if (settingsNav) settingsNav.addEventListener('click', openSettings);
@@ -3273,7 +3534,7 @@
         })();
 
         loadTheme();
-        console.log('✅ MiniChat 已更新：附件管理、音频支持、按钮背景优化');
+        console.log('✅ MiniChat 完整版：含@提及、引用回复、编辑保留附件、音频支持、按钮样式增强');
     </script>
     <script>
         if ('serviceWorker' in navigator) {
