@@ -1585,6 +1585,16 @@
         }
 
         // ==========================================
+        // 更新所有消息头像（用于头像实时同步）
+        // ==========================================
+        function updateAllMessageAvatars(email, newAvatarUrl) {
+            const avatars = document.querySelectorAll(`.message[data-sender-email="${email}"] .avatar-wrapper img`);
+            avatars.forEach(img => {
+                img.src = newAvatarUrl;
+            });
+        }
+
+        // ==========================================
         // 创建消息元素（含头像）
         // ==========================================
         function createMessageElement(msg) {
@@ -1593,6 +1603,7 @@
             div.className = 'message ' + (isMe ? 'me' : 'other');
             if (id) div.dataset.messageId = id;
             if (created_at) div.dataset.createdAt = created_at;
+            if (sender_email) div.dataset.senderEmail = sender_email;
 
             const avatarWrapper = document.createElement('div');
             avatarWrapper.className = 'avatar-wrapper';
@@ -1733,9 +1744,17 @@
                 }
                 Object.assign(currentUserMap, userMap);
 
+                // 合并在线用户头像
+                for (const [email, info] of Object.entries(currentUserMap)) {
+                    const onlineUser = Object.values(onlineUsers).find(u => u.email === email);
+                    if (onlineUser && onlineUser.avatar_url) {
+                        info.avatar_url = onlineUser.avatar_url;
+                    }
+                }
+
                 const messages = sorted.map(msg => {
                     const isMe = (msg.sender_email === currentEmail);
-                    const userInfo = userMap[msg.sender_email] || {};
+                    const userInfo = currentUserMap[msg.sender_email] || {};
                     const avatar_url = userInfo.avatar_url || getDefaultAvatar(msg.sender_email);
                     return {
                         id: msg.id,
@@ -1752,7 +1771,6 @@
                 if (!append) {
                     messageList.innerHTML = '';
                     messages.forEach(msg => addMessageToBottom(msg));
-                    // 不再缓存消息，避免使用过时头像
                 } else {
                     prependMessages(messages);
                 }
@@ -1768,17 +1786,15 @@
         }
 
         // ==========================================
-        // 缓存管理（只缓存消息内容，不用于显示）
+        // 缓存管理（只用于快速加载，不用于显示）
         // ==========================================
         function cacheMessages(messages) {
-            // 保留缓存功能，但不再用于初始加载
             try {
                 localStorage.setItem('minichat_messages', JSON.stringify(messages));
             } catch (e) { /* ignore */ }
         }
 
         function getCachedMessages() {
-            // 可用于离线提示，但不再显示
             return null;
         }
 
@@ -2029,11 +2045,9 @@
             document.title = 'MiniChat';
 
             loadDisplayName().then(() => {
-                // 加载完后，直接刷新消息列表（获取最新头像）
                 refreshMessages();
             });
 
-            // 不再从缓存加载，直接加载最新数据
             messageList.innerHTML = '';
             loadHistory(false);
 
@@ -2267,12 +2281,23 @@
                 for (const [key, presences] of Object.entries(state)) {
                     const presence = presences[0];
                     if (presence) {
+                        const email = presence.email || '';
                         users[key] = {
                             user_id: key,
                             display_name: presence.display_name || '匿名',
-                            email: presence.email || '',
-                            avatar_url: presence.avatar_url || getDefaultAvatar(presence.email)
+                            email: email,
+                            avatar_url: presence.avatar_url || getDefaultAvatar(email)
                         };
+                        // 更新 currentUserMap 中的头像
+                        if (email && presence.avatar_url) {
+                            if (currentUserMap[email]) {
+                                currentUserMap[email].avatar_url = presence.avatar_url;
+                            } else {
+                                currentUserMap[email] = { avatar_url: presence.avatar_url };
+                            }
+                            // 更新已显示的消息头像
+                            updateAllMessageAvatars(email, presence.avatar_url);
+                        }
                         count++;
                     }
                 }
@@ -2647,7 +2672,7 @@
         })();
 
         loadTheme();
-        console.log('✅ MiniChat 已升级：头像实时同步（无缓存）');
+        console.log('✅ MiniChat 已修复头像实时同步问题');
     </script>
 </body>
 </html>
