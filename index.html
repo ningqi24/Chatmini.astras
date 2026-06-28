@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -759,7 +760,7 @@
             color: var(--text-secondary);
             margin-top: 2px;
         }
-        /* ===== 输入区域不变 ===== */
+        /* ===== 输入区域 ===== */
         .chat-main .input-area {
             padding: 12px 24px 20px 24px;
             background: var(--bg-secondary);
@@ -836,7 +837,49 @@
             stroke-linecap: round;
             stroke-linejoin: round;
         }
-        /* ===== 设置面板其他保持不变 ===== */
+
+        /* ===== 正在输入提示 ===== */
+        .typing-indicator {
+            padding: 4px 24px 0 24px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            min-height: 28px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            pointer-events: none;
+            background: var(--bg-secondary);
+        }
+        .typing-indicator.active {
+            opacity: 1;
+        }
+        .typing-dots {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .typing-dots span {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite both;
+        }
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* ===== 设置面板其他 ===== */
         .settings-overlay {
             position: absolute;
             inset: 0;
@@ -1176,6 +1219,17 @@
                     </div>
                 </div>
                 <div class="chat-messages" id="messageList"></div>
+
+                <!-- 正在输入提示 -->
+                <div class="typing-indicator" id="typingIndicator">
+                    <span id="typingText"></span>
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+
                 <div class="input-area">
                     <button id="attachBtn" title="发送图片">
                         <svg viewBox="0 0 24 24">
@@ -1315,12 +1369,10 @@
         const modalOnlineCount = document.getElementById('modalOnlineCount');
         const onlineUsersBtn = document.getElementById('onlineUsersBtn');
         const closeOnlineModal = document.getElementById('closeOnlineModal');
-        // 头像相关
         const avatarPreview = document.getElementById('avatarPreview');
         const avatarUploadBtn = document.getElementById('avatarUploadBtn');
         const avatarFileInput = document.getElementById('avatarFileInput');
         const avatarUploadStatus = document.getElementById('avatarUploadStatus');
-        // 用户详情模态框
         const profileModal = document.getElementById('userProfileModal');
         const profileAvatar = document.getElementById('profileAvatar');
         const profileDisplayName = document.getElementById('profileDisplayName');
@@ -1335,7 +1387,7 @@
         let currentDisplayName = '';
         let currentAvatarUrl = '';
         let isLoginMode = true;
-        let currentUserMap = {}; // 缓存用户信息 { email: { display_name, avatar_url, created_at, last_login } }
+        let currentUserMap = {};
 
         // ==========================================
         // 分页相关变量
@@ -1406,7 +1458,7 @@
         }
 
         // ==========================================
-        // 图片压缩（复用现有）
+        // 图片压缩
         // ==========================================
         function compressImage(file, maxWidth, quality) {
             return new Promise((resolve, reject) => {
@@ -1744,7 +1796,6 @@
                 }
                 Object.assign(currentUserMap, userMap);
 
-                // 合并在线用户头像
                 for (const [email, info] of Object.entries(currentUserMap)) {
                     const onlineUser = Object.values(onlineUsers).find(u => u.email === email);
                     if (onlineUser && onlineUser.avatar_url) {
@@ -1783,15 +1834,6 @@
                 console.error('加载历史消息失败:', err);
                 isLoadingMore = false;
             }
-        }
-
-        // ==========================================
-        // 缓存管理（只用于快速加载，不用于显示）
-        // ==========================================
-        function cacheMessages(messages) {
-            try {
-                localStorage.setItem('minichat_messages', JSON.stringify(messages));
-            } catch (e) { /* ignore */ }
         }
 
         function getCachedMessages() {
@@ -2061,7 +2103,6 @@
             subscribeMessages();
             messageList.addEventListener('scroll', handleScroll);
 
-            // 移动端撤回事件委托
             messageList.addEventListener('click', function(e) {
                 const btn = e.target.closest('.recall-btn');
                 if (btn) {
@@ -2128,7 +2169,7 @@
 
             const senderName = currentDisplayName || currentEmail.split('@')[0];
 
-            // 乐观创建消息对象
+            // 乐观创建
             const tempMsg = {
                 id: 'temp-' + Date.now(),
                 content: content,
@@ -2154,7 +2195,6 @@
 
                 if (error) throw error;
 
-                // 用真实数据替换
                 if (data) {
                     const realMsg = {
                         id: data.id,
@@ -2166,12 +2206,10 @@
                         created_at: data.created_at,
                         avatar_url: currentAvatarUrl || getDefaultAvatar(currentEmail)
                     };
-                    // 移除临时消息并添加真实消息
                     const tempEl = messageList.querySelector(`[data-message-id="${tempMsg.id}"]`);
                     if (tempEl) {
                         tempEl.replaceWith(createMessageElement(realMsg));
                     } else {
-                        // 如果临时消息已被移除，直接添加
                         addMessageToBottom(realMsg);
                     }
                 }
@@ -2258,7 +2296,46 @@
         }
 
         // ==========================================
-        // 订阅消息 + Presence
+        // “正在输入…” 功能
+        // ==========================================
+        let typingStopTimeoutId = null;
+        let lastTypingBroadcastTime = 0;
+        const TYPING_BROADCAST_INTERVAL = 1500;
+        const TYPING_TIMEOUT = 2000;
+
+        function sendTypingEvent() {
+            if (!window.chatChannel || !currentUserId) return;
+            const now = Date.now();
+            if (now - lastTypingBroadcastTime < TYPING_BROADCAST_INTERVAL) return;
+            lastTypingBroadcastTime = now;
+
+            window.chatChannel.send({
+                type: 'broadcast',
+                event: 'typing',
+                payload: {
+                    user_id: currentUserId,
+                    display_name: currentDisplayName || currentEmail.split('@')[0],
+                    avatar_url: currentAvatarUrl || getDefaultAvatar(currentEmail)
+                }
+            });
+        }
+
+        function showTypingIndicator(displayName) {
+            const indicator = document.getElementById('typingIndicator');
+            const text = document.getElementById('typingText');
+            if (!indicator || !text) return;
+
+            text.textContent = `${displayName || '用户'} 正在输入`;
+            indicator.classList.add('active');
+
+            clearTimeout(typingStopTimeoutId);
+            typingStopTimeoutId = setTimeout(() => {
+                indicator.classList.remove('active');
+            }, TYPING_TIMEOUT);
+        }
+
+        // ==========================================
+        // 订阅消息 + Presence + 广播
         // ==========================================
         function subscribeMessages() {
             if (window.chatChannel) {
@@ -2288,14 +2365,12 @@
                             email: email,
                             avatar_url: presence.avatar_url || getDefaultAvatar(email)
                         };
-                        // 更新 currentUserMap 中的头像
                         if (email && presence.avatar_url) {
                             if (currentUserMap[email]) {
                                 currentUserMap[email].avatar_url = presence.avatar_url;
                             } else {
                                 currentUserMap[email] = { avatar_url: presence.avatar_url };
                             }
-                            // 更新已显示的消息头像
                             updateAllMessageAvatars(email, presence.avatar_url);
                         }
                         count++;
@@ -2304,6 +2379,12 @@
                 onlineUsers = users;
                 onlineCount = count;
                 updateOnlineUI();
+            });
+
+            // 监听“正在输入”广播
+            channel.on('broadcast', { event: 'typing' }, ({ payload }) => {
+                if (payload.user_id === currentUserId) return;
+                showTypingIndicator(payload.display_name || '用户');
             });
 
             channel.on('postgres_changes', {
@@ -2316,10 +2397,8 @@
                     if (!msg) return;
                     const isMe = (msg.sender_email === currentEmail);
                     if (isMe) return;
-                    // 获取发送者头像
                     const email = msg.sender_email;
                     let avatar_url = currentUserMap[email]?.avatar_url || getDefaultAvatar(email);
-                    // 从在线用户中获取头像
                     const onlineUser = Object.values(onlineUsers).find(u => u.email === email);
                     if (onlineUser && onlineUser.avatar_url) {
                         avatar_url = onlineUser.avatar_url;
@@ -2399,7 +2478,7 @@
         }
 
         // ==========================================
-        // 图片预览（全局）
+        // 图片预览
         // ==========================================
         window.previewImage = function(url) {
             const overlay = document.createElement('div');
@@ -2539,6 +2618,15 @@
         });
 
         // ==========================================
+        // 输入框事件（正在输入）
+        // ==========================================
+        chatInput.addEventListener('input', function() {
+            const content = this.value.trim();
+            if (content === '') return;
+            sendTypingEvent();
+        });
+
+        // ==========================================
         // 事件绑定
         // ==========================================
         document.addEventListener('visibilitychange', function() {
@@ -2588,7 +2676,6 @@
             }
         });
 
-        // 头像上传按钮
         avatarUploadBtn.addEventListener('click', function() {
             avatarFileInput.click();
         });
@@ -2599,7 +2686,6 @@
             this.value = '';
         });
 
-        // 在线用户弹窗
         onlineUsersBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             onlineModal.classList.toggle('active');
@@ -2615,7 +2701,6 @@
             }
         });
 
-        // 用户详情弹窗关闭
         closeProfileModal.addEventListener('click', function() {
             profileModal.classList.remove('active');
         });
@@ -2626,7 +2711,7 @@
         });
 
         // ==========================================
-        // Splash 控制
+        // Splash
         // ==========================================
         (function() {
             const SPLASH_DURATION = 1800;
@@ -2672,7 +2757,8 @@
         })();
 
         loadTheme();
-        console.log('✅ MiniChat 已修复头像实时同步问题');
+        console.log('✅ MiniChat 已支持“正在输入…”提示');
     </script>
 </body>
 </html>
+```
