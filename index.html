@@ -610,6 +610,12 @@
             margin-top: 4px;
             cursor: pointer;
         }
+        .chat-main .message .message-content audio {
+            max-width: 200px;
+            display: block;
+            margin-top: 4px;
+            border-radius: 8px;
+        }
         .chat-main .message .message-footer {
             display: flex;
             align-items: center;
@@ -621,7 +627,7 @@
             margin-top: 2px;
         }
         .chat-main .message .message-footer .action-btn {
-            background: none;
+            background: rgba(128, 128, 128, 0.15);
             border: none;
             color: var(--text-secondary);
             cursor: pointer;
@@ -635,7 +641,7 @@
             opacity: 0.9;
         }
         .chat-main .message .message-footer .action-btn:hover {
-            background: var(--bg-hover);
+            background: rgba(128, 128, 128, 0.3);
             color: var(--accent);
             opacity: 1;
         }
@@ -649,7 +655,7 @@
             stroke-linejoin: round;
         }
         .chat-main .message .recall-btn {
-            background: none;
+            background: rgba(128, 128, 128, 0.15);
             border: none;
             color: var(--text-secondary);
             font-size: 11px;
@@ -661,7 +667,7 @@
             opacity: 0.9;
         }
         .chat-main .message .recall-btn:hover {
-            background: var(--bg-hover);
+            background: rgba(255, 100, 100, 0.25);
             color: #f87171;
             opacity: 1;
         }
@@ -794,6 +800,60 @@
             font-size: 12px;
             color: var(--text-secondary);
             margin-top: 2px;
+        }
+        /* ===== 附件区域 ===== */
+        .attachment-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 4px 24px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            min-height: 0;
+            transition: all 0.2s;
+        }
+        .attachment-area:empty {
+            display: none;
+        }
+        .attachment-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 4px 8px 4px 4px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            max-width: 200px;
+        }
+        .attachment-item img {
+            width: 32px;
+            height: 32px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .attachment-item .file-icon {
+            font-size: 20px;
+            line-height: 1;
+        }
+        .attachment-item .file-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .attachment-item .remove-attach {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            padding: 0 2px;
+        }
+        .attachment-item .remove-attach:hover {
+            color: #f87171;
         }
         /* ===== 输入区域 ===== */
         .chat-main .input-area {
@@ -1194,6 +1254,9 @@
                 bottom: 60px;
                 max-width: 220px;
             }
+            .attachment-area {
+                padding: 4px 12px;
+            }
         }
         @media (max-width: 480px) {
             .sidebar {
@@ -1321,8 +1384,11 @@
                     </div>
                 </div>
 
+                <!-- 附件区域 -->
+                <div class="attachment-area" id="attachmentArea"></div>
+
                 <div class="input-area">
-                    <!-- Emoji 按钮（SVG 笑脸） -->
+                    <!-- Emoji 按钮 -->
                     <button class="btn-icon" id="emojiBtn" title="表情">
                         <svg viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="10"/>
@@ -1342,8 +1408,8 @@
 
                     <div class="input-group">
                         <input type="text" id="chatInput" placeholder="输入消息…" />
-                        <input type="file" id="fileInput" accept="image/*" style="display:none;" />
-                        <button class="btn-icon" id="attachBtn" title="发送图片">
+                        <input type="file" id="fileInput" accept="image/*,audio/*" style="display:none;" multiple />
+                        <button class="btn-icon" id="attachBtn" title="添加附件（图片/音频）">
                             <svg viewBox="0 0 24 24">
                                 <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
                             </svg>
@@ -1494,6 +1560,7 @@
         const closeProfileModal = document.getElementById('closeProfileModal');
         const emojiBtn = document.getElementById('emojiBtn');
         const emojiPicker = document.getElementById('emojiPicker');
+        const attachmentArea = document.getElementById('attachmentArea');
 
         let currentEmail = '';
         let currentUserId = '';
@@ -1521,7 +1588,12 @@
         // 编辑相关变量
         // ==========================================
         let editingMessageId = null;
-        let isSending = false; // 防止重复发送
+        let isSending = false;
+
+        // ==========================================
+        // 附件管理
+        // ==========================================
+        let attachments = []; // 每个元素 { id, file, type: 'image'|'audio', name, url? }
 
         // ==========================================
         // 主题管理
@@ -1812,15 +1884,33 @@
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
             let displayContent = content || '';
-            const imageMatch = displayContent.match(/!\[image\]\((.*?)\)/);
-            if (imageMatch) {
-                const url = imageMatch[1];
-                displayContent =
-                    `<img src="${url}" onclick="window.previewImage && window.previewImage('${url}')" alt="图片" loading="lazy" />`;
-            } else {
-                displayContent = displayContent.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            // 处理图片
+            displayContent = displayContent.replace(/!\[image\]\((.*?)\)/g, function(match, url) {
+                return `<img src="${url}" onclick="window.previewImage && window.previewImage('${url}')" alt="图片" loading="lazy" />`;
+            });
+            // 处理音频 [audio](url)
+            displayContent = displayContent.replace(/\[audio\]\((.*?)\)/g, function(match, url) {
+                return `<audio controls src="${url}" preload="metadata"></audio>`;
+            });
+            // 转义普通文本（保留已有HTML标签）
+            // 简单处理：只转义 < > 但保留我们生成的标签
+            // 但因为我们上面已经替换了，所以内容中可能还包含用户输入的文本，需要转义
+            // 分割处理：将内容按标签分割？为了简单，我们使用一个临时容器
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = displayContent;
+            // 转义文本节点
+            function escapeTextNodes(node) {
+                if (node.nodeType === 3) {
+                    node.textContent = node.textContent.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                } else if (node.nodeType === 1) {
+                    // 递归
+                    for (let child of node.childNodes) {
+                        escapeTextNodes(child);
+                    }
+                }
             }
-            contentDiv.innerHTML = displayContent;
+            escapeTextNodes(tempDiv);
+            contentDiv.innerHTML = tempDiv.innerHTML;
             bubble.appendChild(contentDiv);
 
             const footer = document.createElement('div');
@@ -1834,9 +1924,8 @@
 
             const isRecalled = content === '（已撤回）';
 
-            // 如果已撤回，不显示任何操作按钮（编辑、转发、撤回都不显示）
             if (!isRecalled) {
-                // --- 转发按钮（所有未撤回消息） ---
+                // --- 转发按钮 ---
                 const forwardBtn = document.createElement('button');
                 forwardBtn.className = 'action-btn';
                 forwardBtn.title = '转发（复制内容）';
@@ -1851,9 +1940,10 @@
                     e.stopPropagation();
                     const textToCopy = content || '';
                     if (!textToCopy) return;
-                    const imageMatch2 = textToCopy.match(/!\[image\]\((.*?)\)/);
-                    const copyText = imageMatch2 ? imageMatch2[1] : textToCopy;
-                    navigator.clipboard.writeText(copyText).then(() => {
+                    // 提取纯文本（去除markdown语法）
+                    let plainText = textToCopy.replace(/!\[image\]\([^)]*\)/g, '[图片]');
+                    plainText = plainText.replace(/\[audio\]\([^)]*\)/g, '[音频]');
+                    navigator.clipboard.writeText(plainText).then(() => {
                         const tip = document.createElement('span');
                         tip.textContent = '✅ 已复制';
                         tip.style.cssText = 'color:#4ade80;font-size:11px;margin-left:4px;';
@@ -1881,12 +1971,15 @@
                         `;
                         editBtn.addEventListener('click', function(e) {
                             e.stopPropagation();
-                            const rawContent = content || '';
+                            // 提取纯文本内容（去除图片/音频标记），只提取文本部分
+                            let rawContent = content || '';
+                            // 移除图片和音频标记
+                            rawContent = rawContent.replace(/!\[image\]\([^)]*\)/g, '').replace(/\[audio\]\([^)]*\)/g, '')
+                                .trim();
                             chatInput.value = rawContent;
                             chatInput.focus();
                             chatInput.classList.add('editing');
                             editingMessageId = id;
-                            // 提示
                             const tip = document.createElement('span');
                             tip.textContent = '✏️ 编辑中';
                             tip.style.cssText = 'color:#fbbf24;font-size:11px;margin-left:4px;';
@@ -2305,7 +2398,6 @@
                 }
             }, { passive: false });
 
-            // 启用发送按钮
             btnSend.disabled = false;
         }
 
@@ -2346,89 +2438,183 @@
             editingMessageId = null;
             chatInput.classList.remove('editing');
             btnSend.disabled = true;
+            attachments = [];
+            renderAttachments();
         }
 
         // ==========================================
-        // 发送消息（支持编辑：删除原消息+插入新消息）
+        // 附件管理
+        // ==========================================
+        function renderAttachments() {
+            attachmentArea.innerHTML = '';
+            attachments.forEach((att, index) => {
+                const item = document.createElement('div');
+                item.className = 'attachment-item';
+                if (att.type === 'image') {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(att.file);
+                    img.alt = att.name;
+                    item.appendChild(img);
+                } else {
+                    const icon = document.createElement('span');
+                    icon.className = 'file-icon';
+                    icon.textContent = '🎵';
+                    item.appendChild(icon);
+                }
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'file-name';
+                nameSpan.textContent = att.name;
+                item.appendChild(nameSpan);
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-attach';
+                removeBtn.textContent = '×';
+                removeBtn.title = '移除';
+                removeBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    attachments.splice(index, 1);
+                    renderAttachments();
+                });
+                item.appendChild(removeBtn);
+                attachmentArea.appendChild(item);
+            });
+        }
+
+        function addAttachment(file) {
+            // 判断类型
+            let type = '';
+            if (file.type.startsWith('image/')) type = 'image';
+            else if (file.type.startsWith('audio/')) type = 'audio';
+            else {
+                setAuthMessage('不支持的文件类型，仅支持图片和音频', 'error');
+                setTimeout(() => setAuthMessage(''), 2000);
+                return;
+            }
+            // 限制大小（图片5MB，音频20MB）
+            if (type === 'image' && file.size > 5 * 1024 * 1024) {
+                setAuthMessage('图片不能超过5MB', 'error');
+                setTimeout(() => setAuthMessage(''), 2000);
+                return;
+            }
+            if (type === 'audio' && file.size > 20 * 1024 * 1024) {
+                setAuthMessage('音频不能超过20MB', 'error');
+                setTimeout(() => setAuthMessage(''), 2000);
+                return;
+            }
+            attachments.push({
+                id: Date.now() + Math.random(),
+                file: file,
+                type: type,
+                name: file.name
+            });
+            renderAttachments();
+        }
+
+        // ==========================================
+        // 发送消息（支持附件和编辑）
         // ==========================================
         async function sendMessageContent(content) {
             if (!currentEmail) {
                 alert('请先登录');
                 return;
             }
-            content = content.trim();
-            if (!content) return;
+            // 如果既没有文本也没有附件，不发送
+            const text = content.trim();
+            if (!text && attachments.length === 0) return;
 
-            // 防止重复发送
             if (isSending) return;
             isSending = true;
 
             const senderName = currentDisplayName || currentEmail.split('@')[0];
 
-            // 如果处于编辑模式
+            // 处理编辑模式：先删除原消息
             if (editingMessageId) {
                 try {
-                    // 1. 删除原消息
                     const { error: deleteError } = await supabase
                         .from('messages')
                         .delete()
                         .eq('id', editingMessageId)
                         .eq('sender_email', currentEmail);
                     if (deleteError) throw deleteError;
-
-                    // 2. 清除编辑状态
                     const oldMsgId = editingMessageId;
                     editingMessageId = null;
                     chatInput.classList.remove('editing');
-
-                    // 3. 发送新消息（插入）
-                    const { data, error } = await supabase
-                        .from('messages')
-                        .insert({
-                            content: content,
-                            sender_name: senderName,
-                            sender_email: currentEmail
-                        })
-                        .select()
-                        .single();
-                    if (error) throw error;
-
-                    // 4. 移除旧消息DOM
-                    const oldEl = messageList.querySelector(`.message[data-message-id="${oldMsgId}"]`);
-                    if (oldEl) oldEl.remove();
-
-                    // 5. 添加新消息
-                    if (data) {
-                        const realMsg = {
-                            id: data.id,
-                            content: data.content,
-                            sender_name: data.sender_name || senderName,
-                            sender_email: data.sender_email || currentEmail,
-                            isMe: true,
-                            time: formatTimeShort(data.created_at),
-                            created_at: data.created_at,
-                            avatar_url: currentAvatarUrl || getDefaultAvatar(currentEmail)
-                        };
-                        addMessageToBottom(realMsg);
-                    }
-                    chatInput.value = '';
-                    isSending = false;
-                    return;
+                    // 移除旧DOM（后续由DELETE事件处理）
                 } catch (err) {
-                    console.error('编辑失败:', err);
+                    console.error('编辑删除失败:', err);
                     setAuthMessage('编辑失败，请重试', 'error');
-                    setTimeout(() => {
-                        if (authMessage.textContent === '编辑失败，请重试') authMessage.textContent = '';
-                    }, 3000);
+                    setTimeout(() => setAuthMessage(''), 3000);
                     isSending = false;
                     return;
                 }
             }
 
-            // 正常发送新消息（乐观创建）
+            // 构建消息内容
+            let finalContent = text;
+            // 如果文本为空但有附件，不添加空文本
+            if (finalContent === '' && attachments.length > 0) {
+                finalContent = ''; // 留空，后面只拼接附件
+            }
+
+            // 上传所有附件并生成markdown
+            const uploadPromises = attachments.map(async (att) => {
+                let processedFile = att.file;
+                if (att.type === 'image') {
+                    try {
+                        if (att.file.size > 200 * 1024) {
+                            processedFile = await compressImage(att.file, 1080, 0.7);
+                        }
+                    } catch (e) { /* ignore */ }
+                }
+                const fileExt = processedFile.name.split('.').pop();
+                const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+                const filePath = `public/${fileName}`;
+                const bucket = att.type === 'image' ? 'chat-images' : 'chat-audios';
+                const { data, error } = await supabase.storage
+                    .from(bucket)
+                    .upload(filePath, processedFile, { cacheControl: '3600', upsert: false });
+                if (error) throw error;
+                const { data: urlData } = supabase.storage
+                    .from(bucket)
+                    .getPublicUrl(filePath);
+                return {
+                    type: att.type,
+                    url: urlData.publicUrl
+                };
+            });
+
+            let attachmentMarkdowns = [];
+            try {
+                const results = await Promise.all(uploadPromises);
+                attachmentMarkdowns = results.map(r => {
+                    if (r.type === 'image') return `![image](${r.url})`;
+                    else if (r.type === 'audio') return `[audio](${r.url})`;
+                    return '';
+                }).filter(Boolean);
+            } catch (err) {
+                console.error('上传附件失败:', err);
+                setAuthMessage('附件上传失败，请重试', 'error');
+                setTimeout(() => setAuthMessage(''), 3000);
+                isSending = false;
+                return;
+            }
+
+            // 组合内容：文本 + 换行 + 附件（每个换行）
+            let fullContent = finalContent;
+            if (attachmentMarkdowns.length > 0) {
+                if (fullContent) fullContent += '\n';
+                fullContent += attachmentMarkdowns.join('\n');
+            }
+            if (!fullContent.trim()) {
+                setAuthMessage('发送内容不能为空', 'error');
+                setTimeout(() => setAuthMessage(''), 2000);
+                isSending = false;
+                return;
+            }
+
+            // 乐观创建临时消息（仅当有内容）
             const tempMsg = {
                 id: 'temp-' + Date.now(),
-                content: content,
+                content: fullContent,
                 sender_name: senderName,
                 sender_email: currentEmail,
                 isMe: true,
@@ -2437,14 +2623,12 @@
                 avatar_url: currentAvatarUrl || getDefaultAvatar(currentEmail)
             };
             addMessageToBottom(tempMsg);
-            // 立即清空输入框，防止重复发送
-            chatInput.value = '';
 
             try {
                 const { data, error } = await supabase
                     .from('messages')
                     .insert({
-                        content: content,
+                        content: fullContent,
                         sender_name: senderName,
                         sender_email: currentEmail
                     })
@@ -2472,7 +2656,11 @@
                     }
                 }
 
-                // 输入框已清空，无需再清
+                // 清空输入和附件
+                chatInput.value = '';
+                attachments = [];
+                renderAttachments();
+
             } catch (err) {
                 console.error('发送失败:', err);
                 const tempEl = messageList.querySelector(`[data-message-id="${tempMsg.id}"]`);
@@ -2503,9 +2691,7 @@
                 if (error) {
                     console.error('撤回失败:', error);
                     setAuthMessage('撤回失败，请重试', 'error');
-                    setTimeout(() => {
-                        if (authMessage.textContent === '撤回失败，请重试') authMessage.textContent = '';
-                    }, 3000);
+                    setTimeout(() => setAuthMessage(''), 3000);
                 }
             } catch (err) {
                 console.error('撤回失败:', err);
@@ -2640,7 +2826,6 @@
                 updateOnlineUI();
             });
 
-            // 监听“正在输入”广播
             channel.on('broadcast', { event: 'typing' }, ({ payload }) => {
                 if (payload.user_id === currentUserId) return;
                 showTypingIndicator(payload.display_name || '用户');
@@ -2705,20 +2890,39 @@
                                 contentDiv.textContent = '（已撤回）';
                                 contentDiv.className = 'message-content recalled';
                             } else {
-                                contentDiv.innerHTML = updated.content.replace(/</g, '&lt;').replace(
-                                    />/g, '&gt;');
+                                // 重新生成内容
+                                let displayContent = updated.content || '';
+                                displayContent = displayContent.replace(/!\[image\]\((.*?)\)/g, function(match,
+                                url) {
+                                    return `<img src="${url}" onclick="window.previewImage && window.previewImage('${url}')" alt="图片" loading="lazy" />`;
+                                });
+                                displayContent = displayContent.replace(/\[audio\]\((.*?)\)/g, function(match,
+                                    url) {
+                                    return `<audio controls src="${url}" preload="metadata"></audio>`;
+                                });
+                                const tempDiv = document.createElement('div');
+                                tempDiv.innerHTML = displayContent;
+                                // 转义文本节点
+                                function escapeTextNodes(node) {
+                                    if (node.nodeType === 3) {
+                                        node.textContent = node.textContent.replace(/</g, '&lt;').replace(/>/g,
+                                            '&gt;');
+                                    } else if (node.nodeType === 1) {
+                                        for (let child of node.childNodes) {
+                                            escapeTextNodes(child);
+                                        }
+                                    }
+                                }
+                                escapeTextNodes(tempDiv);
+                                contentDiv.innerHTML = tempDiv.innerHTML;
                                 contentDiv.className = 'message-content';
                             }
                         }
-                        // 更新后重新创建消息元素以刷新按钮（因为撤回后要隐藏按钮）
-                        // 但这里直接刷新整个消息列表最简单，但为了性能，可以只替换该元素
-                        // 简单起见，刷新消息列表（但可能会丢失滚动位置）
-                        // 更好的做法是重新生成该消息的DOM
+                        // 重新生成footer（因为按钮状态可能变化）
                         if (updated.content === '（已撤回）') {
-                            // 重新生成该消息
+                            // 重新生成整个消息
                             const oldEl = el;
                             const parent = oldEl.parentNode;
-                            // 构造一个msg对象
                             const msgObj = {
                                 id: updated.id,
                                 content: updated.content,
@@ -2739,7 +2943,6 @@
                 }
             });
 
-            // 监听 DELETE 事件，用于编辑删除原消息时移除DOM
             channel.on('postgres_changes', {
                 event: 'DELETE',
                 schema: 'public',
@@ -2846,83 +3049,27 @@
                     e.preventDefault();
                     const file = item.getAsFile();
                     if (file) {
-                        // 调用图片上传逻辑（复用 attach 的流程）
-                        handleImageFile(file);
+                        addAttachment(file);
                     }
                     return;
                 }
             }
         });
 
-        // 抽取图片上传逻辑
-        async function handleImageFile(file) {
-            if (!file || !file.type.startsWith('image/')) {
-                setAuthMessage('请选择图片文件', 'error');
-                return;
-            }
-
-            let processedFile = file;
-            try {
-                if (file.size > 200 * 1024) {
-                    processedFile = await compressImage(file, 1080, 0.7);
-                }
-            } catch (err) {
-                console.warn('压缩失败，使用原图', err);
-                processedFile = file;
-            }
-
-            if (processedFile.size > 20 * 1024 * 1024) {
-                setAuthMessage('图片不能超过 20MB', 'error');
-                return;
-            }
-
-            const tempId = 'uploading_' + Date.now();
-            const tempDiv = document.createElement('div');
-            tempDiv.className = 'message me';
-            tempDiv.innerHTML =
-                '<div class="avatar-wrapper"><img src="" alt="头像" style="width:28px;height:28px;border-radius:50%;" /></div><div class="bubble"><span style="opacity:0.6;">上传中…</span></div>';
-            const avatarImg = tempDiv.querySelector('.avatar-wrapper img');
-            avatarImg.src = currentAvatarUrl || getDefaultAvatar(currentEmail);
-            messageList.appendChild(tempDiv);
-            messageList.scrollTop = messageList.scrollHeight;
-
-            try {
-                const fileExt = processedFile.name.split('.').pop();
-                const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-                const filePath = `public/${fileName}`;
-                const { data, error } = await supabase.storage
-                    .from('chat-images')
-                    .upload(filePath, processedFile, { cacheControl: '3600', upsert: false });
-                if (error) throw error;
-                const { data: urlData } = supabase.storage
-                    .from('chat-images')
-                    .getPublicUrl(filePath);
-                const publicURL = urlData.publicUrl;
-                const content = `![image](${publicURL})`;
-                await sendMessageContent(content);
-                tempDiv.remove();
-            } catch (err) {
-                console.error('上传失败:', err);
-                tempDiv.remove();
-                setAuthMessage('图片上传失败，请重试', 'error');
-                setTimeout(() => {
-                    if (authMessage.textContent === '图片上传失败，请重试') authMessage.textContent = '';
-                }, 3000);
-            }
-        }
-
         // ==========================================
-        // 图片上传（聊天图片） - 使用按钮
+        // 文件选择（按钮）
         // ==========================================
         attachBtn.addEventListener('click', function(e) {
             e.preventDefault();
             fileInput.click();
         });
 
-        fileInput.addEventListener('change', async function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            await handleImageFile(file);
+        fileInput.addEventListener('change', function(e) {
+            const files = e.target.files;
+            if (!files || files.length === 0) return;
+            for (let file of files) {
+                addAttachment(file);
+            }
             fileInput.value = '';
         });
 
@@ -2941,9 +3088,7 @@
                 this.classList.remove('editing');
                 this.value = '';
                 setAuthMessage('已取消编辑', 'success');
-                setTimeout(() => {
-                    if (authMessage.textContent === '已取消编辑') authMessage.textContent = '';
-                }, 1500);
+                setTimeout(() => setAuthMessage(''), 1500);
             }
         });
 
@@ -2999,18 +3144,17 @@
             this.textContent = type === 'password' ? '显示' : '隐藏';
         });
 
-        if (chatInput) {
-            chatInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    const content = this.value.trim();
-                    if (content) sendMessageContent(content);
-                }
-            });
-        }
+        chatInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const content = this.value;
+                sendMessageContent(content);
+            }
+        });
+
         btnSend.addEventListener('click', function() {
-            const content = chatInput.value.trim();
-            if (content) sendMessageContent(content);
+            const content = chatInput.value;
+            sendMessageContent(content);
         });
 
         if (settingsNav) settingsNav.addEventListener('click', openSettings);
@@ -3114,7 +3258,7 @@
                 e.preventDefault();
                 deferredPrompt = e;
                 const installBtn = document.createElement('button');
-                installBtn.textContent = '📱 安装 MiniChat';
+                installBtn.textContent = '安装 MiniChat';
                 installBtn.style.cssText =
                     'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;padding:12px 24px;background:#3b82f6;color:#fff;border:none;border-radius:30px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.3);';
                 document.body.appendChild(installBtn);
@@ -3129,7 +3273,7 @@
         })();
 
         loadTheme();
-        console.log('✅ MiniChat 已更新：防重复发送、粘贴图片、撤回消息禁用操作、按钮颜色优化');
+        console.log('✅ MiniChat 已更新：附件管理、音频支持、按钮背景优化');
     </script>
     <script>
         if ('serviceWorker' in navigator) {
