@@ -8,6 +8,8 @@
     <meta name="theme-color" content="#0d0d0d">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- ===== 版本号注入（用于缓存控制） ===== -->
+    <meta name="version" content="2.5.0" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <style>
         :root{--bg-primary:#0d0d0d;--bg-secondary:#1a1a1a;--bg-sidebar:#121212;--bg-card:#1e1e1e;--bg-input:#2a2a2a;--bg-hover:#2a2a2a;--bg-overlay:rgba(0,0,0,0.7);--text-primary:#e8e8e8;--text-secondary:#a0a0a0;--text-muted:#6b6b6b;--accent:#3b82f6;--accent-hover:#2563eb;--border-color:#2a2a2a;--shadow:0 8px 30px rgba(0,0,0,0.6);--radius:16px;--radius-sm:10px;--transition:0.2s ease;--avatar-size:28px;--mention-color:#fbbf24;--bubble-me:#0f0f0f;--bubble-me-border:#1a1a1a;--quote-bg:rgba(59,130,246,0.1);--quote-border:#3b82f6;--quote-author:#60a5fa;--code-bg:rgba(255,255,255,0.1);--code-border:rgba(128,128,128,0.2);--link-color:#60a5fa}
@@ -236,12 +238,35 @@
         @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
         @keyframes highlightPulse{0%{box-shadow:0 0 0 0 rgba(59,130,246,.6)}50%{box-shadow:0 0 0 6px rgba(59,130,246,.3)}100%{box-shadow:0 0 0 0 rgba(59,130,246,0)}}
         .message-highlight{animation:highlightPulse .8s ease 3;border-radius:var(--radius-sm)}
-        @media(max-width:768px){.sidebar{width:200px;padding:12px}.sidebar .nav-item span{display:none}.sidebar .nav-item{justify-content:center}.sidebar .user-email{font-size:11px;text-align:center}.chat-main .chat-header{padding:12px 16px}.chat-main .chat-messages{padding:12px}.chat-main .input-area{padding:10px 16px 16px;gap:6px}.login-card{padding:28px 20px}.splash-icons img{height:50px}.splash-icons{gap:20px}.online-modal{right:10px;left:10px;top:50px;max-width:none}.chat-main .message{max-width:90%}.emoji-picker{left:10px;bottom:60px;max-width:260px;grid-template-columns:repeat(7,1fr)}.attachment-area{padding:4px 12px}.mention-dropdown{bottom:calc(100% + 2px)}.upload-overlay .upload-dialog{padding:24px 20px;min-width:auto;width:85%}}
+        
+        /* ===== 引用跳转弹窗样式 ===== */
+        .quote-jump-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);justify-content:center;align-items:center;z-index:600;animation:fadeIn .2s ease}
+        .quote-jump-modal.active{display:flex}
+        .quote-jump-modal .modal-box{background:var(--bg-card);border-radius:var(--radius);padding:28px 32px;max-width:420px;width:90%;border:1px solid var(--border-color);box-shadow:var(--shadow)}
+        .quote-jump-modal .modal-box .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+        .quote-jump-modal .modal-box .modal-header h3{font-size:18px;font-weight:600}
+        .quote-jump-modal .modal-box .modal-header .close-btn{background:none;border:none;color:var(--text-secondary);font-size:24px;cursor:pointer;padding:0 4px;line-height:1;transition:color .2s}
+        .quote-jump-modal .modal-box .modal-header .close-btn:hover{color:var(--text-primary)}
+        .quote-jump-modal .modal-box .quote-info{background:var(--bg-input);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:16px;border-left:3px solid var(--accent)}
+        .quote-jump-modal .modal-box .quote-info .qi-author{font-weight:600;font-size:14px;margin-bottom:4px}
+        .quote-jump-modal .modal-box .quote-info .qi-author .qi-time{font-weight:400;color:var(--text-muted);font-size:12px;margin-left:8px}
+        .quote-jump-modal .modal-box .quote-info .qi-content{font-size:14px;color:var(--text-secondary);word-break:break-word}
+        .quote-jump-modal .modal-box .modal-actions{display:flex;gap:10px;justify-content:flex-end}
+        .quote-jump-modal .modal-box .modal-actions button{padding:8px 20px;border:none;border-radius:var(--radius-sm);font-size:14px;cursor:pointer;transition:all .2s ease}
+        .quote-jump-modal .modal-box .modal-actions .btn-cancel{background:var(--bg-input);color:var(--text-secondary)}
+        .quote-jump-modal .modal-box .modal-actions .btn-cancel:hover{background:var(--bg-hover)}
+        .quote-jump-modal .modal-box .modal-actions .btn-jump{background:var(--accent);color:#fff}
+        .quote-jump-modal .modal-box .modal-actions .btn-jump:hover{background:var(--accent-hover);transform:translateY(-1px)}
+        .quote-jump-modal .modal-box .modal-actions .btn-jump:active{transform:scale(.95)}
+        .quote-jump-modal .modal-box .jump-status{margin-top:12px;font-size:13px;color:var(--text-muted);text-align:center;min-height:20px}
+
+        @media(max-width:768px){.sidebar{width:200px;padding:12px}.sidebar .nav-item span{display:none}.sidebar .nav-item{justify-content:center}.sidebar .user-email{font-size:11px;text-align:center}.chat-main .chat-header{padding:12px 16px}.chat-main .chat-messages{padding:12px}.chat-main .input-area{padding:10px 16px 16px;gap:6px}.login-card{padding:28px 20px}.splash-icons img{height:50px}.splash-icons{gap:20px}.online-modal{right:10px;left:10px;top:50px;max-width:none}.chat-main .message{max-width:90%}.emoji-picker{left:10px;bottom:60px;max-width:260px;grid-template-columns:repeat(7,1fr)}.attachment-area{padding:4px 12px}.mention-dropdown{bottom:calc(100% + 2px)}.upload-overlay .upload-dialog{padding:24px 20px;min-width:auto;width:85%}.quote-jump-modal .modal-box{padding:20px}}
         @media(max-width:480px){.sidebar{width:60px;padding:8px}.sidebar .logo-area img{height:28px;max-width:40px}.sidebar .nav-item{padding:10px}.splash-icons img{height:40px}.splash-icons{gap:14px}.splash-status{font-size:10px;margin-top:16px}.emoji-picker{max-width:220px;grid-template-columns:repeat(6,1fr)}.emoji-picker span{font-size:22px}}
     </style>
 </head>
 <body>
 <div class="app" id="app">
+    <!-- ===== 启动画面 ===== -->
     <div id="splash" role="status" aria-live="polite">
         <div class="splash-icons">
             <img class="icon-left" src="assets/Inspired.svg" alt="Inspired" />
@@ -249,6 +274,8 @@
         </div>
         <div class="splash-status">✦ 加载中 ✦</div>
     </div>
+
+    <!-- ===== 登录覆盖层 ===== -->
     <div class="login-overlay" id="loginOverlay">
         <div class="login-card">
             <div class="logo-area"><img src="assets/logo.svg" alt="Logo"/><h1>MiniChat</h1></div>
@@ -261,6 +288,8 @@
             <div class="auth-message" id="authMessage"></div>
         </div>
     </div>
+
+    <!-- ===== 主界面 ===== -->
     <div class="main-interface hidden" id="mainInterface">
         <aside class="sidebar">
             <div class="logo-area"><img src="assets/logo.svg" alt="Logo"/><span class="logo-text">MiniChat</span><span class="version-tag" id="sidebarVersion"></span></div>
@@ -294,6 +323,8 @@
             </div>
         </main>
     </div>
+
+    <!-- ===== 文件上传遮罩弹窗 ===== -->
     <div class="upload-overlay" id="uploadOverlay">
         <div class="upload-dialog">
             <button class="close-upload" id="closeUploadBtn">&times;</button>
@@ -303,6 +334,8 @@
             <div class="upload-spinner"></div>
         </div>
     </div>
+
+    <!-- ===== 设置弹窗 ===== -->
     <div class="settings-overlay" id="settingsOverlay">
         <div class="settings-panel">
             <h2>设置</h2>
@@ -314,6 +347,8 @@
             <div class="panel-version" id="panelVersion"></div>
         </div>
     </div>
+
+    <!-- ===== 用户资料弹窗 ===== -->
     <div class="user-profile-modal" id="userProfileModal">
         <div class="modal-content">
             <img class="avatar-large" id="profileAvatar" src="" alt="头像"/>
@@ -325,29 +360,44 @@
             <button class="modal-close" id="closeProfileModal">关闭</button>
         </div>
     </div>
+
+    <!-- ===== 引用跳转弹窗 ===== -->
+    <div class="quote-jump-modal" id="quoteJumpModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>📎 引用消息</h3>
+                <button class="close-btn" id="closeQuoteJumpBtn">&times;</button>
+            </div>
+            <div class="quote-info">
+                <div class="qi-author" id="qjAuthor">作者 <span class="qi-time" id="qjTime">时间</span></div>
+                <div class="qi-content" id="qjContent">引用内容</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="qjCancel">取消</button>
+                <button class="btn-jump" id="qjJump">跳转到原文</button>
+            </div>
+            <div class="jump-status" id="qjStatus"></div>
+        </div>
+    </div>
 </div>
 
 <script>
-/* ===== 版本号 v2.4.1 ===== */
-var APP_VERSION = '2.4.1';
+/* ===== 版本号 v2.5.0 ===== */
+var APP_VERSION = '2.5.0';
 
-/* ===== 强制缓存刷新 ===== */
-(function forceCacheRefresh() {
-    var storedVersion = sessionStorage.getItem('minichat_version');
-    if (storedVersion !== APP_VERSION) {
-        sessionStorage.setItem('minichat_version', APP_VERSION);
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(regs) {
-                var promises = regs.map(function(reg) { return reg.unregister(); });
-                return Promise.all(promises);
-            }).then(function() {
-                location.reload(true);
-            }).catch(function() {
-                location.reload(true);
-            });
-        } else {
-            location.reload(true);
-        }
+/* ================================================================
+ * 1. 缓存控制：自动检测版本更新，强制刷新
+ * ================================================================ */
+(function autoClearCache() {
+    var currentVersion = APP_VERSION;
+    var storedVersion = localStorage.getItem('minichat_version');
+    var metaVersion = document.querySelector('meta[name="version"]');
+    if (metaVersion) metaVersion.setAttribute('content', currentVersion);
+
+    if (storedVersion !== currentVersion) {
+        localStorage.setItem('minichat_version', currentVersion);
+        // 强制从服务器重新加载，绕过所有缓存
+        location.reload(true);
     }
 })();
 
@@ -405,7 +455,15 @@ var loginOverlay = $('loginOverlay'),
     attachmentArea = $('attachmentArea'),
     mentionDropdown = $('mentionDropdown'),
     uploadOverlay = $('uploadOverlay'),
-    closeUploadBtn = $('closeUploadBtn');
+    closeUploadBtn = $('closeUploadBtn'),
+    quoteJumpModal = $('quoteJumpModal'),
+    closeQuoteJumpBtn = $('closeQuoteJumpBtn'),
+    qjAuthor = $('qjAuthor'),
+    qjTime = $('qjTime'),
+    qjContent = $('qjContent'),
+    qjCancel = $('qjCancel'),
+    qjJump = $('qjJump'),
+    qjStatus = $('qjStatus');
 
 var currentEmail = '',
     currentUserId = '',
@@ -530,7 +588,6 @@ function compressImage(file, mw, q) {
 /* ===== 文件上传遮罩 ===== */
 function showUploadOverlay() { uploadOverlay.classList.add('active');
     isUploadingFile = true; }
-
 function hideUploadOverlay() { uploadOverlay.classList.remove('active');
     isUploadingFile = false; }
 closeUploadBtn.addEventListener('click', function() { hideUploadOverlay();
@@ -635,38 +692,60 @@ function renderMessageContent(raw) {
     return text;
 }
 
-/* ===== 引用相关（核心修复） ===== */
+/* ================================================================
+ * 2. 引用跳转：弹窗 + scrollIntoView 精准定位
+ * ================================================================ */
+var pendingQuoteData = null;  // 存储当前弹窗对应的引用数据
 
-// 存储引用的数据：作者、原始ISO时间、邮箱、内容摘要
-function addQuoteAttachment(senderName, senderEmail, content, isoTime) {
-    var plain = content || '';
-    plain = plain.replace(/!\[image\]\([^)]*\)/g, '[图片]').replace(/\[audio\]\([^)]*\)/g, '[音频]').replace(/\[quote:[^\]]*\]/g, '').trim();
-    if (!plain) plain = '[空消息]';
-    plain = plain.split('\n')[0].substring(0, 100);
-    attachments.push({
-        id: 'quote-' + Date.now(),
-        type: 'quote',
-        quoteAuthor: senderName || '匿名',
-        quoteEmail: senderEmail || '',
-        quoteText: plain,
-        quoteIsoTime: isoTime || new Date().toISOString()  // 存储原始ISO时间
-    });
-    renderAttachments();
-    chatInput.focus();
+function openQuoteJumpModal(author, time, email, content) {
+    // 填充弹窗信息
+    qjAuthor.textContent = author || '匿名';
+    qjTime.textContent = time ? formatTimeShort(time) : '';
+    qjContent.textContent = content || '[空消息]';
+    qjStatus.textContent = '';
+    // 存储数据供跳转使用
+    pendingQuoteData = { author: author, time: time, email: email || '' };
+    quoteJumpModal.classList.add('active');
 }
 
-// 跳转到引用消息
-function scrollToQuote(author, time, email) {
-    console.log('🔍 引用跳转 - 作者:', author, '时间:', time, '邮箱:', email);
-    if (!author) { setAuthMessage('引用信息缺失', 'error');
-        setTimeout(function() { setAuthMessage(''); }, 2000); return; }
+function closeQuoteJumpModal() {
+    quoteJumpModal.classList.remove('active');
+    pendingQuoteData = null;
+}
+
+// 关闭弹窗的各种方式
+closeQuoteJumpBtn.addEventListener('click', closeQuoteJumpModal);
+qjCancel.addEventListener('click', closeQuoteJumpModal);
+quoteJumpModal.addEventListener('click', function(e) { if (e.target === quoteJumpModal) closeQuoteJumpModal(); });
+
+// 跳转逻辑
+qjJump.addEventListener('click', function() {
+    if (!pendingQuoteData) return;
+    var data = pendingQuoteData;
+    var author = data.author;
+    var time = data.time;
+    var email = data.email;
+
+    qjStatus.textContent = '正在查找原始消息...';
+    qjStatus.style.color = 'var(--text-secondary)';
+
+    if (!author) {
+        qjStatus.textContent = '❌ 引用信息缺失';
+        qjStatus.style.color = '#f87171';
+        return;
+    }
+
     var targetTime = new Date(time).getTime();
-    if (isNaN(targetTime)) { setAuthMessage('引用时间无效', 'error');
-        setTimeout(function() { setAuthMessage(''); }, 2000); return; }
+    if (isNaN(targetTime)) {
+        qjStatus.textContent = '❌ 引用时间无效';
+        qjStatus.style.color = '#f87171';
+        return;
+    }
 
     var elements = messageList.querySelectorAll('.message');
-    var bestMatch = null,
-        bestDiff = Infinity;
+    var bestMatch = null;
+    var bestDiff = Infinity;
+
     for (var i = 0; i < elements.length; i++) {
         var el = elements[i];
         var senderEmail = el.dataset.senderEmail || '';
@@ -675,7 +754,6 @@ function scrollToQuote(author, time, email) {
         var msgTime = el.dataset.createdAt ? new Date(el.dataset.createdAt).getTime() : NaN;
         if (isNaN(msgTime)) continue;
 
-        // 匹配条件：优先邮箱，其次作者名
         var match = false;
         if (email && senderEmail === email) match = true;
         else if (!email && senderName === author) match = true;
@@ -683,22 +761,31 @@ function scrollToQuote(author, time, email) {
 
         if (match) {
             var diff = Math.abs(msgTime - targetTime);
-            if (diff < 60000 && diff < bestDiff) { bestDiff = diff;
-                bestMatch = el; }
+            if (diff < 60000 && diff < bestDiff) {
+                bestDiff = diff;
+                bestMatch = el;
+            }
         }
     }
 
     if (bestMatch) {
-        console.log('✅ 找到匹配消息，滚动到:', bestMatch);
+        qjStatus.textContent = '✅ 已定位到原文！';
+        qjStatus.style.color = '#4ade80';
+        // 滚动到目标位置[reference:11][reference:12]
         bestMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
         bestMatch.classList.add('message-highlight');
-        setTimeout(function() { bestMatch.classList.remove('message-highlight'); }, 2400);
+        setTimeout(function() {
+            bestMatch.classList.remove('message-highlight');
+        }, 2400);
+        // 延迟关闭弹窗，让用户看到跳转结果
+        setTimeout(function() {
+            closeQuoteJumpModal();
+        }, 1200);
     } else {
-        console.warn('❌ 未找到匹配消息');
-        setAuthMessage('未找到原始消息（可能已删除或未加载）', 'error');
-        setTimeout(function() { setAuthMessage(''); }, 2500);
+        qjStatus.textContent = '❌ 未找到原始消息（可能已删除或尚未加载）';
+        qjStatus.style.color = '#f87171';
     }
-}
+});
 
 /* ===== 创建消息元素 ===== */
 function createMessageElement(msg) {
@@ -708,11 +795,11 @@ function createMessageElement(msg) {
         isMe = msg.isMe,
         time = msg.time,
         id = msg.id,
-        created_at = msg.created_at; // 原始ISO时间
+        created_at = msg.created_at;
     var div = document.createElement('div');
     div.className = 'message ' + (isMe ? 'me' : 'other');
     if (id) div.dataset.messageId = id;
-    if (created_at) div.dataset.createdAt = created_at; // 存储原始ISO
+    if (created_at) div.dataset.createdAt = created_at;
     if (sender_email) div.dataset.senderEmail = sender_email;
 
     var isRecalled = (content === '（已撤回）');
@@ -755,14 +842,13 @@ function createMessageElement(msg) {
     ft.appendChild(ts);
 
     if (!isRecalled) {
-        // 引用按钮：传递原始ISO时间
         var qb = document.createElement('button');
         qb.className = 'action-btn';
         qb.title = '引用回复';
         qb.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>';
         qb.addEventListener('click', function(e) {
             e.stopPropagation();
-            addQuoteAttachment(sender_name, sender_email, content, created_at); // 传原始ISO
+            addQuoteAttachment(sender_name, sender_email, content, created_at);
         });
         ft.appendChild(qb);
 
@@ -934,22 +1020,24 @@ async function refreshSettingsData() {
 
 /* ===== 全局事件监听 ===== */
 function handleDocumentClick(e) {
-    // 先处理撤回按钮
     var recallBtn = e.target.closest('.recall-btn');
     if (recallBtn) { e.preventDefault(); if (recallBtn.dataset.messageId) window.recallMessage(recallBtn.dataset.messageId); return; }
 
-    // 处理引用块点击
+    // 引用块点击 → 弹出跳转弹窗
     var quote = e.target.closest('.quote-block');
     if (quote) {
         e.preventDefault();
         var author = quote.dataset.author || quote.getAttribute('data-author');
         var time = quote.dataset.time || quote.getAttribute('data-time');
         var email = quote.dataset.email || quote.getAttribute('data-email') || '';
-        console.log('📝 引用块被点击 - author:', author, 'time:', time, 'email:', email);
+        // 提取被引用的内容（纯文本）
+        var contentEl = quote.querySelector('.quote-body') || quote;
+        var content = contentEl.textContent ? contentEl.textContent.trim() : '';
+        // 去掉作者和时间前缀
+        content = content.replace(/^[^\s]+\s+/, '').trim();
         if (author && time) {
-            scrollToQuote(author, time, email);
+            openQuoteJumpModal(author, time, email, content);
         } else {
-            console.warn('⚠️ 引用数据缺失:', quote.outerHTML);
             setAuthMessage('引用数据不完整', 'error');
             setTimeout(function() { setAuthMessage(''); }, 3000);
         }
@@ -969,7 +1057,6 @@ function setupGlobalEventListeners() {
     document.removeEventListener('scroll', handleDocumentScroll);
     document.addEventListener('click', handleDocumentClick);
     document.addEventListener('scroll', handleDocumentScroll, true);
-    console.log('✅ 全局事件监听已设置');
 }
 
 /* ===== 进入聊天 ===== */
@@ -1018,6 +1105,24 @@ async function handleLogout() {
 }
 
 function closeSettingsFunc() { settingsOverlay.classList.remove('active'); }
+
+/* ===== 引用附件 ===== */
+function addQuoteAttachment(senderName, senderEmail, content, isoTime) {
+    var plain = content || '';
+    plain = plain.replace(/!\[image\]\([^)]*\)/g, '[图片]').replace(/\[audio\]\([^)]*\)/g, '[音频]').replace(/\[quote:[^\]]*\]/g, '').trim();
+    if (!plain) plain = '[空消息]';
+    plain = plain.split('\n')[0].substring(0, 100);
+    attachments.push({
+        id: 'quote-' + Date.now(),
+        type: 'quote',
+        quoteAuthor: senderName || '匿名',
+        quoteEmail: senderEmail || '',
+        quoteText: plain,
+        quoteIsoTime: isoTime || new Date().toISOString()
+    });
+    renderAttachments();
+    chatInput.focus();
+}
 
 /* ===== 附件 ===== */
 function renderAttachments() {
@@ -1120,7 +1225,6 @@ async function sendMessageContent(content) {
         var qa = attachments.filter(function(a) { return a.type === 'quote'; });
         qa.forEach(function(q) {
             var emailPart = q.quoteEmail ? '|' + q.quoteEmail : '';
-            // 关键：使用 q.quoteIsoTime (原始ISO时间)
             fc = '[quote:' + q.quoteAuthor + '|' + q.quoteIsoTime + emailPart + '|' + q.quoteText + ']\n' + fc;
         });
         var na = attachments.filter(function(a) { return !a.existing && a.type !== 'quote'; });
