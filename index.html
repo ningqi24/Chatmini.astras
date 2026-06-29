@@ -15,7 +15,7 @@
     <meta http-equiv="Expires" content="0">
     
     <!-- ===== 版本号注入 ===== -->
-    <meta name="version" content="2.6.0" />
+    <meta name="version" content="2.7.0" />
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <style>
@@ -207,7 +207,7 @@
         .upload-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;z-index:350;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .25s,visibility .25s}
         .upload-overlay.active{opacity:1;visibility:visible;pointer-events:auto}
         .upload-overlay .upload-dialog{background:var(--bg-card);border-radius:var(--radius);padding:32px 40px;min-width:280px;max-width:360px;border:1px solid var(--border-color);box-shadow:var(--shadow);position:relative;text-align:center}
-        .upload-overlay .upload-dialog .close-upload{position:absolute;top:12px;right:16px;background:none;border:none;color:var(--text-secondary);font-size:22px;cursor:pointer;line-height:1;padding:4px 8px;border-radius:6px;transition:all .2s ease}
+        .upload-overlay .upload-dialog .close-upload{position:absolute;top:12px;right:16px;background:none;border:none;color:var(--text-secondary);cursor:pointer;line-height:1;padding:4px 8px;border-radius:6px;transition:all .2s ease}
         .upload-overlay .upload-dialog .close-upload:hover{background:var(--bg-hover);color:var(--text-primary)}
         .upload-overlay .upload-dialog .upload-icon{font-size:48px;margin-bottom:12px;display:block}
         .upload-overlay .upload-dialog h3{font-size:18px;font-weight:600;margin-bottom:6px}
@@ -249,14 +249,15 @@
         .quote-jump-modal.active{display:flex}
         .quote-jump-modal .modal-box{background:var(--bg-card);border-radius:var(--radius);padding:28px 32px;max-width:420px;width:90%;border:1px solid var(--border-color);box-shadow:var(--shadow)}
         .quote-jump-modal .modal-box .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-        .quote-jump-modal .modal-box .modal-header h3{font-size:18px;font-weight:600}
-        .quote-jump-modal .modal-box .modal-header .close-btn{background:none;border:none;color:var(--text-secondary);font-size:24px;cursor:pointer;padding:0 4px;line-height:1;transition:color .2s}
+        .quote-jump-modal .modal-box .modal-header h3{font-size:18px;font-weight:600;display:flex;align-items:center;gap:8px}
+        .quote-jump-modal .modal-box .modal-header h3 svg{width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none}
+        .quote-jump-modal .modal-box .modal-header .close-btn{background:none;border:none;color:var(--text-secondary);cursor:pointer;padding:0 4px;line-height:1;transition:color .2s}
         .quote-jump-modal .modal-box .modal-header .close-btn:hover{color:var(--text-primary)}
         .quote-jump-modal .modal-box .quote-info{background:var(--bg-input);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:16px;border-left:3px solid var(--accent)}
         .quote-jump-modal .modal-box .quote-info .qi-author{font-weight:600;font-size:14px;margin-bottom:4px}
         .quote-jump-modal .modal-box .quote-info .qi-author .qi-time{font-weight:400;color:var(--text-muted);font-size:12px;margin-left:8px}
         .quote-jump-modal .modal-box .quote-info .qi-content{font-size:14px;color:var(--text-secondary);word-break:break-word}
-        .quote-jump-modal .modal-box .modal-actions{display:flex;gap:10px;justify-content:flex-end}
+        .quote-jump-modal .modal-box .modal-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
         .quote-jump-modal .modal-box .modal-actions button{padding:8px 20px;border:none;border-radius:var(--radius-sm);font-size:14px;cursor:pointer;transition:all .2s ease}
         .quote-jump-modal .modal-box .modal-actions .btn-cancel{background:var(--bg-input);color:var(--text-secondary)}
         .quote-jump-modal .modal-box .modal-actions .btn-cancel:hover{background:var(--bg-hover)}
@@ -264,7 +265,26 @@
         .quote-jump-modal .modal-box .modal-actions .btn-jump:hover{background:var(--accent-hover);transform:translateY(-1px)}
         .quote-jump-modal .modal-box .modal-actions .btn-jump:active{transform:scale(.95)}
         .quote-jump-modal .modal-box .jump-status{margin-top:12px;font-size:13px;color:var(--text-muted);text-align:center;min-height:20px}
-        @media(max-width:768px){.sidebar{width:200px;padding:12px}.sidebar .nav-item span{display:none}.sidebar .nav-item{justify-content:center}.sidebar .user-email{font-size:11px;text-align:center}.chat-main .chat-header{padding:12px 16px}.chat-main .chat-messages{padding:12px}.chat-main .input-area{padding:10px 16px 16px;gap:6px}.login-card{padding:28px 20px}.splash-icons img{height:50px}.splash-icons{gap:20px}.online-modal{right:10px;left:10px;top:50px;max-width:none}.chat-main .message{max-width:90%}.emoji-picker{left:10px;bottom:60px;max-width:260px;grid-template-columns:repeat(7,1fr)}.attachment-area{padding:4px 12px}.mention-dropdown{bottom:calc(100% + 2px)}.upload-overlay .upload-dialog{padding:24px 20px;min-width:auto;width:85%}.quote-jump-modal .modal-box{padding:20px}}
+        .quote-jump-modal .modal-box .jump-status .status-btn{background:var(--accent);color:#fff;border:none;padding:4px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;margin-left:6px;transition:all .2s ease}
+        .quote-jump-modal .modal-box .jump-status .status-btn:hover{background:var(--accent-hover)}
+
+        /* ===== 版本更新提示弹窗 ===== */
+        .version-update-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);justify-content:center;align-items:center;z-index:700;animation:fadeIn .2s ease}
+        .version-update-modal.active{display:flex}
+        .version-update-modal .modal-box{background:var(--bg-card);border-radius:var(--radius);padding:32px;max-width:400px;width:90%;border:1px solid var(--border-color);box-shadow:var(--shadow);text-align:center}
+        .version-update-modal .modal-box h3{font-size:20px;font-weight:600;margin-bottom:8px}
+        .version-update-modal .modal-box p{color:var(--text-secondary);font-size:14px;margin-bottom:16px;line-height:1.6}
+        .version-update-modal .modal-box .version-info{background:var(--bg-input);padding:8px 12px;border-radius:var(--radius-sm);font-size:13px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+        .version-update-modal .modal-box .version-info .new-ver{color:var(--accent);font-weight:600}
+        .version-update-modal .modal-box .modal-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+        .version-update-modal .modal-box .modal-actions button{padding:10px 24px;border:none;border-radius:var(--radius-sm);font-size:14px;cursor:pointer;transition:all .2s ease}
+        .version-update-modal .modal-box .modal-actions .btn-later{background:var(--bg-input);color:var(--text-secondary)}
+        .version-update-modal .modal-box .modal-actions .btn-later:hover{background:var(--bg-hover)}
+        .version-update-modal .modal-box .modal-actions .btn-refresh{background:var(--accent);color:#fff}
+        .version-update-modal .modal-box .modal-actions .btn-refresh:hover{background:var(--accent-hover);transform:translateY(-1px)}
+        .version-update-modal .modal-box .modal-actions .btn-refresh:active{transform:scale(.95)}
+
+        @media(max-width:768px){.sidebar{width:200px;padding:12px}.sidebar .nav-item span{display:none}.sidebar .nav-item{justify-content:center}.sidebar .user-email{font-size:11px;text-align:center}.chat-main .chat-header{padding:12px 16px}.chat-main .chat-messages{padding:12px}.chat-main .input-area{padding:10px 16px 16px;gap:6px}.login-card{padding:28px 20px}.splash-icons img{height:50px}.splash-icons{gap:20px}.online-modal{right:10px;left:10px;top:50px;max-width:none}.chat-main .message{max-width:90%}.emoji-picker{left:10px;bottom:60px;max-width:260px;grid-template-columns:repeat(7,1fr)}.attachment-area{padding:4px 12px}.mention-dropdown{bottom:calc(100% + 2px)}.upload-overlay .upload-dialog{padding:24px 20px;min-width:auto;width:85%}.quote-jump-modal .modal-box{padding:20px}.version-update-modal .modal-box{padding:24px}}
         @media(max-width:480px){.sidebar{width:60px;padding:8px}.sidebar .logo-area img{height:28px;max-width:40px}.sidebar .nav-item{padding:10px}.splash-icons img{height:40px}.splash-icons{gap:14px}.splash-status{font-size:10px;margin-top:16px}.emoji-picker{max-width:220px;grid-template-columns:repeat(6,1fr)}.emoji-picker span{font-size:22px}}
     </style>
 </head>
@@ -329,7 +349,9 @@
             <button class="close-upload" id="closeUploadBtn">
                 <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
-            <span class="upload-icon">📎</span>
+            <span class="upload-icon">
+                <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            </span>
             <h3>正在选择文件...</h3>
             <p>请从系统对话框中选择图片或音频</p>
             <div class="upload-spinner"></div>
@@ -360,7 +382,10 @@
     <div class="quote-jump-modal" id="quoteJumpModal">
         <div class="modal-box">
             <div class="modal-header">
-                <h3>📎 引用消息</h3>
+                <h3>
+                    <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+                    引用消息
+                </h3>
                 <button class="close-btn" id="closeQuoteJumpBtn">
                     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
@@ -376,29 +401,65 @@
             <div class="jump-status" id="qjStatus"></div>
         </div>
     </div>
+    <!-- ===== 版本更新提示弹窗 ===== -->
+    <div class="version-update-modal" id="versionUpdateModal">
+        <div class="modal-box">
+            <h3>🔄 发现新版本</h3>
+            <p>当前版本 <span id="currentVerDisplay"></span>，最新版本 <span id="newVerDisplay" style="color:var(--accent);font-weight:600;"></span></p>
+            <div class="version-info">
+                <span>检测到新版本，建议立即刷新以获取最新功能和修复</span>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-later" id="versionLater">稍后提醒</button>
+                <button class="btn-refresh" id="versionRefresh">立即刷新 (Ctrl+F5)</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-/* ===== 版本号 v2.6.0 ===== */
-var APP_VERSION = '2.6.0';
+/* ===== 版本号 v2.7.0 ===== */
+var APP_VERSION = '2.7.0';
 
 /* ================================================================
- * 多重缓存控制策略（四重保障）
- * 1. Meta标签禁止缓存HTML
- * 2. localStorage版本号对比 + 强制刷新
- * 3. Service Worker自动更新 + skipWaiting + clients.claim
- * 4. 资源URL附加版本号指纹
+ * 多重缓存控制策略 + vision.json 版本检测
  * ================================================================ */
 
-// ===== 策略1 & 2: 版本号检测 + 强制刷新 =====
-(function enforceCacheControl() {
+// ===== 策略1: 从 vision.json 获取远程版本号 =====
+(function checkRemoteVersion() {
+    var currentVersion = APP_VERSION;
+    // 显示当前版本
+    document.getElementById('currentVerDisplay').textContent = currentVersion;
+
+    fetch('vision.json?v=' + Date.now())
+        .then(function(response) {
+            if (!response.ok) throw new Error('无法获取 vision.json');
+            return response.json();
+        })
+        .then(function(data) {
+            var remoteVersion = data.version || '';
+            if (remoteVersion && remoteVersion !== currentVersion) {
+                // 显示更新弹窗
+                document.getElementById('newVerDisplay').textContent = remoteVersion;
+                document.getElementById('versionUpdateModal').classList.add('active');
+                // 存储新版本号以便后续使用
+                localStorage.setItem('minichat_latest_version', remoteVersion);
+            }
+        })
+        .catch(function(err) {
+            console.log('⚠️ 版本检测失败:', err);
+        });
+})();
+
+// ===== 策略2: localStorage 版本对比强制刷新 =====
+(function enforceLocalCache() {
     var currentVersion = APP_VERSION;
     var storedVersion = localStorage.getItem('minichat_version');
     var metaVersion = document.querySelector('meta[name="version"]');
     if (metaVersion) metaVersion.setAttribute('content', currentVersion);
 
-    // 如果版本不一致，强制从服务器重新加载
-    if (storedVersion !== currentVersion) {
+    if (storedVersion && storedVersion !== currentVersion) {
+        // 版本不一致，强制刷新
         localStorage.setItem('minichat_version', currentVersion);
         // 清除可能存在的旧缓存
         if ('caches' in window) {
@@ -410,30 +471,59 @@ var APP_VERSION = '2.6.0';
                 });
             }).catch(function() {});
         }
-        // 强制重新加载（绕过所有缓存）
         location.reload(true);
+    } else if (!storedVersion) {
+        // 首次访问，存储版本
+        localStorage.setItem('minichat_version', currentVersion);
     }
 })();
 
-// ===== 策略3: Service Worker 自动更新 =====
+// ===== 版本更新弹窗事件 =====
+document.getElementById('versionRefresh').addEventListener('click', function() {
+    // 强制刷新并清除缓存
+    if ('caches' in window) {
+        caches.keys().then(function(names) {
+            var promises = names.map(function(name) { return caches.delete(name); });
+            return Promise.all(promises);
+        }).then(function() {
+            localStorage.setItem('minichat_version', APP_VERSION);
+            location.reload(true);
+        }).catch(function() {
+            location.reload(true);
+        });
+    } else {
+        location.reload(true);
+    }
+});
+
+document.getElementById('versionLater').addEventListener('click', function() {
+    document.getElementById('versionUpdateModal').classList.remove('active');
+    // 记录已忽略的版本，避免每次打开都弹窗
+    localStorage.setItem('minichat_ignored_version', document.getElementById('newVerDisplay').textContent);
+});
+
+// 如果用户已经忽略了某个版本，不再弹窗
+(function checkIgnoredVersion() {
+    var ignored = localStorage.getItem('minichat_ignored_version');
+    var newVerDisplay = document.getElementById('newVerDisplay');
+    if (ignored && newVerDisplay.textContent === ignored) {
+        // 如果忽略的版本与当前新版本一致，关闭弹窗
+        document.getElementById('versionUpdateModal').classList.remove('active');
+    }
+})();
+
+// ===== Service Worker 更新 =====
 (function setupServiceWorker() {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js?v=' + APP_VERSION)
             .then(function(registration) {
-                // 检测更新
                 registration.onupdatefound = function() {
                     var newWorker = registration.installing;
                     if (newWorker) {
                         newWorker.onstatechange = function() {
-                            // 新SW已安装，立即激活
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                // 有新版本可用，通知用户或自动刷新
                                 console.log('🔄 新版本Service Worker已就绪');
-                                // 自动刷新页面以应用新版本
-                                if (confirm('发现新版本，点击确定立即更新')) {
-                                    newWorker.postMessage({ type: 'SKIP_WAITING' });
-                                    window.location.reload();
-                                }
+                                // 可以提示用户刷新，但我们已经有了 vision.json 检测，这里作为补充
                             }
                         };
                     }
@@ -442,13 +532,6 @@ var APP_VERSION = '2.6.0';
             .catch(function(err) {
                 console.log('⚠️ Service Worker 注册失败:', err);
             });
-
-        // 监听来自SW的消息
-        navigator.serviceWorker.addEventListener('message', function(event) {
-            if (event.data && event.data.type === 'REFRESH_REQUIRED') {
-                window.location.reload();
-            }
-        });
     }
 })();
 
@@ -715,8 +798,16 @@ function renderMessageContent(raw) {
     var quotes = [],
         images = [],
         audios = [];
-    text = text.replace(/\[quote:([^\|\]]+)\|([^\|\]]+)\|([^\|\]]*)\|([\s\S]*?)\]/g, function(_, a, t, e, b) { quotes.push({ author: a, time: t, email: e, body: b }); return '\x00Q' + quotes.length + 'Q\x00'; });
-    text = text.replace(/\[quote:([^\|\]]+)\|([^\|\]]+)\|([\s\S]*?)\]/g, function(_, a, t, b) { quotes.push({ author: a, time: t, email: '', body: b }); return '\x00Q' + quotes.length + 'Q\x00'; });
+    // 新的引用格式：包含消息ID
+    text = text.replace(/\[quote:([^\|\]]+)\|([^\|\]]+)\|([^\|\]]*)\|([^\|\]]+)\|([\s\S]*?)\]/g, function(_, a, t, e, id, b) {
+        quotes.push({ author: a, time: t, email: e, messageId: id, body: b });
+        return '\x00Q' + quotes.length + 'Q\x00';
+    });
+    // 兼容旧格式（无ID）
+    text = text.replace(/\[quote:([^\|\]]+)\|([^\|\]]+)\|([^\|\]]*)\|([\s\S]*?)\]/g, function(_, a, t, e, b) {
+        quotes.push({ author: a, time: t, email: e, messageId: '', body: b });
+        return '\x00Q' + quotes.length + 'Q\x00';
+    });
     text = text.replace(/!\[image\]\(([^)]+)\)/g, function(_, u) { images.push(u); return '\x00I' + images.length + 'I\x00'; });
     text = text.replace(/\[audio\]\(([^)]+)\)/g, function(_, u) { audios.push(u); return '\x00A' + audios.length + 'A\x00'; });
     text = text.replace(/@(\S+)/g, '<span class="mention">@$1</span>');
@@ -731,9 +822,10 @@ function renderMessageContent(raw) {
         var authorAttr = esc(q.author);
         var timeAttr = esc(q.time);
         var emailAttr = esc(q.email);
+        var messageIdAttr = esc(q.messageId);
         var bodyEsc = esc(q.body);
         text = text.replace('\x00Q' + (i + 1) + 'Q\x00',
-            '<div class="quote-block" data-author="' + authorAttr + '" data-time="' + timeAttr + '" data-email="' + emailAttr + '">' +
+            '<div class="quote-block" data-author="' + authorAttr + '" data-time="' + timeAttr + '" data-email="' + emailAttr + '" data-message-id="' + messageIdAttr + '">' +
             '<span class="quote-author">' + authorAttr + '</span>' +
             bodyEsc +
             (timeAttr ? '<span class="quote-time">' + timeAttr + '</span>' : '') +
@@ -746,12 +838,12 @@ function renderMessageContent(raw) {
 /* ===== 引用跳转 ===== */
 var pendingQuoteData = null;
 
-function openQuoteJumpModal(author, time, email, content) {
+function openQuoteJumpModal(author, time, email, content, messageId) {
     qjAuthor.textContent = author || '匿名';
     qjTime.textContent = time ? formatTimeShort(time) : '';
     qjContent.textContent = content || '[空消息]';
     qjStatus.textContent = '';
-    pendingQuoteData = { author: author, time: time, email: email || '' };
+    pendingQuoteData = { author: author, time: time, email: email || '', messageId: messageId || '' };
     quoteJumpModal.classList.add('active');
 }
 
@@ -764,12 +856,63 @@ closeQuoteJumpBtn.addEventListener('click', closeQuoteJumpModal);
 qjCancel.addEventListener('click', closeQuoteJumpModal);
 quoteJumpModal.addEventListener('click', function(e) { if (e.target === quoteJumpModal) closeQuoteJumpModal(); });
 
+// 加载更多历史直到找到指定消息
+async function loadHistoryUntilMessageId(messageId, targetTime) {
+    return new Promise(function(resolve, reject) {
+        var loadedCount = 0;
+        var maxAttempts = 5; // 最多加载5次（100条）
+        var attempt = 0;
+
+        function doLoad() {
+            if (attempt >= maxAttempts) {
+                resolve(false);
+                return;
+            }
+            attempt++;
+            // 检查当前列表是否已包含该消息
+            var existing = messageList.querySelector('[data-message-id="' + messageId + '"]');
+            if (existing) {
+                resolve(true);
+                return;
+            }
+            // 如果没有更多历史，停止
+            if (!hasMoreMessages) {
+                resolve(false);
+                return;
+            }
+            // 加载历史（追加到顶部）
+            loadHistory(true).then(function() {
+                // 再次检查
+                var found = messageList.querySelector('[data-message-id="' + messageId + '"]');
+                if (found) {
+                    resolve(true);
+                } else {
+                    // 继续加载
+                    doLoad();
+                }
+            }).catch(function(err) {
+                reject(err);
+            });
+        }
+
+        // 先检查当前列表
+        var existingNow = messageList.querySelector('[data-message-id="' + messageId + '"]');
+        if (existingNow) {
+            resolve(true);
+            return;
+        }
+        // 如果消息不在当前列表，开始加载
+        doLoad();
+    });
+}
+
 qjJump.addEventListener('click', function() {
     if (!pendingQuoteData) return;
     var data = pendingQuoteData;
     var author = data.author;
     var time = data.time;
     var email = data.email;
+    var messageId = data.messageId;
 
     qjStatus.textContent = '正在查找原始消息...';
     qjStatus.style.color = 'var(--text-secondary)';
@@ -787,6 +930,7 @@ qjJump.addEventListener('click', function() {
         return;
     }
 
+    // 先尝试在已加载的消息中查找
     var elements = messageList.querySelectorAll('.message');
     var bestMatch = null;
     var bestDiff = Infinity;
@@ -800,9 +944,16 @@ qjJump.addEventListener('click', function() {
         if (isNaN(msgTime)) continue;
 
         var match = false;
-        if (email && senderEmail === email) match = true;
-        else if (!email && senderName === author) match = true;
-        else if (email && senderName === author && senderEmail !== email) match = true;
+        // 优先使用消息ID匹配
+        if (messageId && el.dataset.messageId === messageId) {
+            match = true;
+        } else if (email && senderEmail === email) {
+            match = true;
+        } else if (!email && senderName === author) {
+            match = true;
+        } else if (email && senderName === author && senderEmail !== email) {
+            match = true;
+        }
 
         if (match) {
             var diff = Math.abs(msgTime - targetTime);
@@ -824,6 +975,41 @@ qjJump.addEventListener('click', function() {
         setTimeout(function() {
             closeQuoteJumpModal();
         }, 1200);
+        return;
+    }
+
+    // 如果未找到，且我们有消息ID，尝试加载更多历史
+    if (messageId) {
+        qjStatus.textContent = '⏳ 正在加载更多历史消息...';
+        qjStatus.style.color = 'var(--text-secondary)';
+        loadHistoryUntilMessageId(messageId, targetTime).then(function(found) {
+            if (found) {
+                // 再次查找
+                var el = messageList.querySelector('[data-message-id="' + messageId + '"]');
+                if (el) {
+                    qjStatus.textContent = '✅ 已定位到原文！';
+                    qjStatus.style.color = '#4ade80';
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el.classList.add('message-highlight');
+                    setTimeout(function() {
+                        el.classList.remove('message-highlight');
+                    }, 2400);
+                    setTimeout(function() {
+                        closeQuoteJumpModal();
+                    }, 1200);
+                } else {
+                    qjStatus.textContent = '❌ 消息已加载但仍未找到，可能已被删除';
+                    qjStatus.style.color = '#f87171';
+                }
+            } else {
+                qjStatus.textContent = '❌ 未找到原始消息（可能已删除或超出历史范围）';
+                qjStatus.style.color = '#f87171';
+            }
+        }).catch(function(err) {
+            console.error(err);
+            qjStatus.textContent = '❌ 加载历史失败，请手动滚动加载更多后重试';
+            qjStatus.style.color = '#f87171';
+        });
     } else {
         qjStatus.textContent = '❌ 未找到原始消息（可能已删除或尚未加载）';
         qjStatus.style.color = '#f87171';
@@ -891,7 +1077,7 @@ function createMessageElement(msg) {
         qb.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>';
         qb.addEventListener('click', function(e) {
             e.stopPropagation();
-            addQuoteAttachment(sender_name, sender_email, content, created_at);
+            addQuoteAttachment(sender_name, sender_email, content, created_at, id);
         });
         ft.appendChild(qb);
 
@@ -956,8 +1142,10 @@ async function loadHistory(append) {
             msgs.forEach(function(m) { addMessageToBottom(m); }); } else { prependMessages(msgs); }
         if (data.length < PAGE_SIZE) hasMoreMessages = false;
         isLoadingMore = false;
+        return msgs; // 返回加载的消息列表
     } catch (e) { console.error(e);
-        isLoadingMore = false; }
+        isLoadingMore = false;
+        throw e; }
 }
 
 async function refreshMessages() { messageList.innerHTML = '';
@@ -1072,11 +1260,12 @@ function handleDocumentClick(e) {
         var author = quote.dataset.author || quote.getAttribute('data-author');
         var time = quote.dataset.time || quote.getAttribute('data-time');
         var email = quote.dataset.email || quote.getAttribute('data-email') || '';
+        var messageId = quote.dataset.messageId || quote.getAttribute('data-message-id') || '';
         var contentEl = quote.querySelector('.quote-body') || quote;
         var content = contentEl.textContent ? contentEl.textContent.trim() : '';
         content = content.replace(/^[^\s]+\s+/, '').trim();
         if (author && time) {
-            openQuoteJumpModal(author, time, email, content);
+            openQuoteJumpModal(author, time, email, content, messageId);
         } else {
             setAuthMessage('引用数据不完整', 'error');
             setTimeout(function() { setAuthMessage(''); }, 3000);
@@ -1147,7 +1336,7 @@ async function handleLogout() {
 function closeSettingsFunc() { settingsOverlay.classList.remove('active'); }
 
 /* ===== 引用附件 ===== */
-function addQuoteAttachment(senderName, senderEmail, content, isoTime) {
+function addQuoteAttachment(senderName, senderEmail, content, isoTime, messageId) {
     var plain = content || '';
     plain = plain.replace(/!\[image\]\([^)]*\)/g, '[图片]').replace(/\[audio\]\([^)]*\)/g, '[音频]').replace(/\[quote:[^\]]*\]/g, '').trim();
     if (!plain) plain = '[空消息]';
@@ -1158,7 +1347,8 @@ function addQuoteAttachment(senderName, senderEmail, content, isoTime) {
         quoteAuthor: senderName || '匿名',
         quoteEmail: senderEmail || '',
         quoteText: plain,
-        quoteIsoTime: isoTime || new Date().toISOString()
+        quoteIsoTime: isoTime || new Date().toISOString(),
+        quoteMessageId: messageId || ''
     });
     renderAttachments();
     chatInput.focus();
@@ -1171,7 +1361,7 @@ function renderAttachments() {
         var item = document.createElement('div');
         if (att.type === 'quote') {
             item.className = 'attachment-item quote-attachment';
-            item.innerHTML = '<span class="qa-label">💬 引用</span><span class="qa-author">' + esc(att.quoteAuthor) + '</span><span class="qa-text">' + esc(att.quoteText) + '</span>';
+            item.innerHTML = '<span class="qa-label"><svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg> 引用</span><span class="qa-author">' + esc(att.quoteAuthor) + '</span><span class="qa-text">' + esc(att.quoteText) + '</span>';
             var rb = document.createElement('button');
             rb.className = 'remove-attach';
             rb.textContent = '×';
@@ -1265,7 +1455,8 @@ async function sendMessageContent(content) {
         var qa = attachments.filter(function(a) { return a.type === 'quote'; });
         qa.forEach(function(q) {
             var emailPart = q.quoteEmail ? '|' + q.quoteEmail : '';
-            fc = '[quote:' + q.quoteAuthor + '|' + q.quoteIsoTime + emailPart + '|' + q.quoteText + ']\n' + fc;
+            var idPart = q.quoteMessageId ? '|' + q.quoteMessageId : '';
+            fc = '[quote:' + q.quoteAuthor + '|' + q.quoteIsoTime + emailPart + idPart + '|' + q.quoteText + ']\n' + fc;
         });
         var na = attachments.filter(function(a) { return !a.existing && a.type !== 'quote'; });
         var nmd = await uploadNewAttachments(na);
