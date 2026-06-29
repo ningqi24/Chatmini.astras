@@ -35,10 +35,26 @@
             --code-bg:rgba(0,0,0,0.06);--code-border:rgba(0,0,0,0.1);--link-color:#2563eb;
         }
         *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg-primary);color:var(--text-primary);height:100vh;display:flex;justify-content:center;align-items:center;padding:16px;transition:background .3s,color .3s}
-        .app{width:100%;max-width:1300px;height:96vh;max-height:900px;background:var(--bg-secondary);border-radius:var(--radius);box-shadow:var(--shadow);display:flex;overflow:hidden;position:relative}
+        body{
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+            background:var(--bg-primary);
+            color:var(--text-primary);
+            height:100vh;
+            width:100vw;
+            overflow:hidden;
+            transition:background .3s,color .3s;
+        }
+        /* ===== 全屏应用容器 ===== */
+        .app{
+            width:100vw;
+            height:100vh;
+            background:var(--bg-secondary);
+            display:flex;
+            overflow:hidden;
+            position:relative;
+        }
 
-        /* ===== 启动画面 - 方案一：纯净品牌揭示 ===== */
+        /* ===== 启动画面 - 方案一：纯净品牌揭示（图标调小） ===== */
         #splash {
             position: absolute;
             inset: 0;
@@ -60,21 +76,19 @@
         .splash-icons {
             display: flex;
             align-items: center;
-            gap: 40px;
+            gap: 30px;  /* 间距缩小 */
             position: relative;
         }
         .splash-icons img {
-            height: 100px;
+            height: 64px;  /* 从100px调小到64px */
             width: auto;
             object-fit: contain;
             filter: drop-shadow(0 4px 20px rgba(59, 130, 246, 0.15));
             opacity: 0;
         }
-        /* 左侧图标：从左侧滑入 */
         .splash-icons .icon-left {
             animation: slideInLeft 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards;
         }
-        /* 右侧图标：从右侧滑入 */
         .splash-icons .icon-right {
             animation: slideInRight 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s forwards;
         }
@@ -88,9 +102,8 @@
             100% { opacity: 1; transform: translateX(0) scale(1); }
         }
 
-        /* 底部极简状态文字（淡入淡出） */
         .splash-status {
-            margin-top: 28px;
+            margin-top: 24px;
             color: rgba(255, 255, 255, 0.25);
             font-size: 12px;
             letter-spacing: 1.5px;
@@ -108,10 +121,32 @@
             50% { opacity: 0.6; }
         }
 
-        /* ===== 登录覆盖层及其他组件（与之前完全一致） ===== */
-        .login-overlay{position:absolute;inset:0;background:var(--bg-overlay);backdrop-filter:blur(12px);display:flex;justify-content:center;align-items:center;z-index:200;border-radius:var(--radius);transition:opacity .3s,visibility .3s}
+        /* ===== 登录覆盖层 ===== */
+        .login-overlay{
+            position:absolute;
+            inset:0;
+            background:var(--bg-overlay);
+            backdrop-filter:blur(12px);
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            z-index:200;
+            transition:opacity .3s,visibility .3s;
+            border-radius:0; /* 全屏无圆角 */
+        }
         .login-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
-        .login-card{background:var(--bg-card);padding:40px 36px;border-radius:var(--radius);width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.8);border:1px solid var(--border-color)}
+        .login-card{
+            background:var(--bg-card);
+            padding:40px 36px;
+            border-radius:var(--radius);
+            width:100%;
+            max-width:400px;
+            box-shadow:0 20px 60px rgba(0,0,0,.8);
+            border:1px solid var(--border-color);
+        }
+        /* 其余样式保持不变，仅修改了登录覆盖层的圆角 */
+
+        /* ===== 以下所有样式与之前完全一致 ===== */
         .login-card .logo-area{display:flex;align-items:center;gap:12px;margin-bottom:28px}
         .login-card .logo-area img{height:40px;width:auto}
         .login-card .logo-area h1{display:none}
@@ -299,7 +334,7 @@
         .typing-dots span:nth-child(2){animation-delay:.2s}
         .typing-dots span:nth-child(3){animation-delay:.4s}
         @keyframes typingBounce{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
-        .settings-overlay{position:absolute;inset:0;background:var(--bg-overlay);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:300;border-radius:var(--radius);transition:opacity .25s,visibility .25s;opacity:0;visibility:hidden;pointer-events:none}
+        .settings-overlay{position:absolute;inset:0;background:var(--bg-overlay);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:300;border-radius:0;transition:opacity .25s,visibility .25s;opacity:0;visibility:hidden;pointer-events:none}
         .settings-overlay.active{opacity:1;visibility:visible;pointer-events:auto}
         .settings-panel{background:var(--bg-card);border-radius:var(--radius);padding:32px 36px;width:100%;max-width:400px;border:1px solid var(--border-color);box-shadow:0 20px 60px rgba(0,0,0,.6);max-height:90vh;overflow-y:auto}
         .settings-panel h2{font-size:22px;font-weight:600;margin-bottom:24px}
@@ -336,8 +371,31 @@
             animation:highlightPulse 0.8s ease 3;
             border-radius:var(--radius-sm);
         }
-        @media(max-width:768px){body{padding:0}.app{max-height:100vh;border-radius:0}.sidebar{width:200px;padding:12px}.sidebar .nav-item span{display:none}.sidebar .nav-item{justify-content:center}.sidebar .user-email{font-size:11px;text-align:center}.chat-main .chat-header{padding:12px 16px}.chat-main .chat-messages{padding:12px}.chat-main .input-area{padding:10px 16px 16px;gap:8px}.login-card{padding:28px 20px}.splash-icons img{height:70px}.splash-icons{gap:24px}.online-modal{right:10px;left:10px;top:50px;max-width:none}.chat-main .message{max-width:90%}.emoji-picker{left:10px;bottom:60px;max-width:220px}.attachment-area{padding:4px 12px}.mention-dropdown{bottom:calc(100% + 2px)}}
-        @media(max-width:480px){.sidebar{width:60px;padding:8px}.sidebar .logo-area img{height:28px;max-width:40px}.sidebar .nav-item{padding:10px}.splash-icons img{height:55px}.splash-icons{gap:16px}.splash-status{font-size:10px;margin-top:20px}}
+        @media(max-width:768px){
+            .sidebar{width:200px;padding:12px}
+            .sidebar .nav-item span{display:none}
+            .sidebar .nav-item{justify-content:center}
+            .sidebar .user-email{font-size:11px;text-align:center}
+            .chat-main .chat-header{padding:12px 16px}
+            .chat-main .chat-messages{padding:12px}
+            .chat-main .input-area{padding:10px 16px 16px;gap:8px}
+            .login-card{padding:28px 20px}
+            .splash-icons img{height:50px}
+            .splash-icons{gap:20px}
+            .online-modal{right:10px;left:10px;top:50px;max-width:none}
+            .chat-main .message{max-width:90%}
+            .emoji-picker{left:10px;bottom:60px;max-width:220px}
+            .attachment-area{padding:4px 12px}
+            .mention-dropdown{bottom:calc(100% + 2px)}
+        }
+        @media(max-width:480px){
+            .sidebar{width:60px;padding:8px}
+            .sidebar .logo-area img{height:28px;max-width:40px}
+            .sidebar .nav-item{padding:10px}
+            .splash-icons img{height:40px}
+            .splash-icons{gap:14px}
+            .splash-status{font-size:10px;margin-top:16px}
+        }
     </style>
 </head>
 <body>
@@ -426,8 +484,8 @@
 </div>
 
 <script>
-/* ===== 版本号 v2.3.1 ===== */
-const APP_VERSION='2.3.1';
+/* ===== 版本号 v2.3.2 ===== */
+const APP_VERSION='2.3.2';
 document.getElementById('sidebarVersion').textContent='v'+APP_VERSION;
 document.getElementById('panelVersion').textContent='MiniChat v'+APP_VERSION;
 
@@ -444,7 +502,7 @@ let isLoadingMore=false,hasMoreMessages=true,oldestTimestamp=null,unreadCount=0;
 
 /* ===== 启动画面控制 ===== */
 (function controlSplash() {
-    const DURATION = 2000; // 2秒后自动消失（与动画时长匹配）
+    const DURATION = 2000;
     const splash = document.getElementById('splash');
 
     function hideSplash() {
@@ -487,9 +545,7 @@ let isLoadingMore=false,hasMoreMessages=true,oldestTimestamp=null,unreadCount=0;
     }
 })();
 
-/* ===== 以下为原有业务逻辑 (认证、聊天、设置等) ===== */
-/* 所有函数与之前版本完全一致，未做任何改动，仅保留版本号更新 */
-
+/* ===== 所有业务逻辑函数保持不变（仅保留必要的引用） ===== */
 function bustCache(url){
     if(!url)return'';
     if(url.includes('ui-avatars.com'))return url;
