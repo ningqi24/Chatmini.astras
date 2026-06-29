@@ -11,7 +11,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="version" content="2.7.2" />
+    <meta name="version" content="2.7.3" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <style>
         :root{--bg-primary:#0d0d0d;--bg-secondary:#1a1a1a;--bg-sidebar:#121212;--bg-card:#1e1e1e;--bg-input:#2a2a2a;--bg-hover:#2a2a2a;--bg-overlay:rgba(0,0,0,0.7);--text-primary:#e8e8e8;--text-secondary:#a0a0a0;--text-muted:#6b6b6b;--accent:#3b82f6;--accent-hover:#2563eb;--border-color:#2a2a2a;--shadow:0 8px 30px rgba(0,0,0,0.6);--radius:16px;--radius-sm:10px;--transition:0.2s ease;--avatar-size:28px;--mention-color:#fbbf24;--bubble-me:#0f0f0f;--bubble-me-border:#1a1a1a;--quote-bg:rgba(59,130,246,0.1);--quote-border:#3b82f6;--quote-author:#60a5fa;--code-bg:rgba(255,255,255,0.1);--code-border:rgba(128,128,128,0.2);--link-color:#60a5fa}
@@ -235,6 +235,9 @@
         .settings-panel .close-settings:hover{background:var(--bg-hover);transform:translateY(-1px)}
         .settings-panel .close-settings:active{transform:scale(.97)}
         .settings-panel .panel-version{margin-top:12px;text-align:center;font-size:11px;color:var(--text-muted)}
+        .settings-panel .panel-info{margin-top:16px;padding-top:16px;border-top:1px solid var(--border-color);font-size:13px;color:var(--text-secondary);line-height:1.8}
+        .settings-panel .panel-info a{color:var(--accent);text-decoration:none}
+        .settings-panel .panel-info a:hover{text-decoration:underline}
         @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
         @keyframes highlightPulse{0%{box-shadow:0 0 0 0 rgba(59,130,246,.6)}50%{box-shadow:0 0 0 6px rgba(59,130,246,.3)}100%{box-shadow:0 0 0 0 rgba(59,130,246,0)}}
         .message-highlight{animation:highlightPulse .8s ease 3;border-radius:var(--radius-sm)}
@@ -280,7 +283,6 @@
         .context-menu .menu-item{padding:8px 20px;font-size:14px;cursor:pointer;transition:background .15s;color:var(--text-primary);display:flex;align-items:center;gap:10px}
         .context-menu .menu-item:hover{background:var(--bg-hover)}
         .context-menu .menu-item svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none}
-        /* typing indicator */
         .typing-indicator{display:none;align-items:center;gap:6px;padding:8px 16px;margin:8px 24px;background:var(--bg-card);border-radius:12px;font-size:13px;color:var(--text-secondary);border:1px solid var(--border-color);box-shadow:0 2px 8px rgba(0,0,0,.1);animation:fadeIn .2s ease}
         .typing-indicator.active{display:flex}
         .typing-dots{display:flex;align-items:center;gap:3px}
@@ -372,8 +374,24 @@
             <div class="setting-item" style="flex-direction:column;align-items:stretch;gap:10px"><div><div class="label">头像</div><div class="desc">点击下方按钮上传新头像</div></div><div class="avatar-upload-area"><img class="preview" id="avatarPreview" src="" alt="头像预览"/><button class="upload-btn" id="avatarUploadBtn">上传</button><input type="file" id="avatarFileInput" accept="image/*"/></div><div class="avatar-upload-status" id="avatarUploadStatus"></div></div>
             <div class="setting-item"><div><div class="label">深色模式</div><div class="desc">切换日间/夜间主题</div></div><div class="toggle-switch active" id="themeToggle"><div class="knob"></div></div></div>
             <div class="setting-item nickname-item"><div><div class="label">显示昵称</div><div class="desc">其他成员将看到这个名字</div></div><div class="nickname-row"><input type="text" id="displayNameInput" placeholder="输入昵称" maxlength="20"/><button class="btn-save" id="saveDisplayName">保存</button></div><div class="nickname-msg" id="displayNameMessage"></div></div>
+            <div class="setting-item" style="flex-direction:column;align-items:stretch;gap:8px">
+                <div><div class="label">版本更新</div><div class="desc">手动检测是否有新版本</div></div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <button class="btn-save" id="checkUpdateBtn" style="padding:8px 16px;background:var(--accent);border:none;border-radius:var(--radius-sm);color:#fff;font-size:14px;cursor:pointer;">检测更新</button>
+                    <span id="updateCheckStatus" style="font-size:12px;color:var(--text-secondary);"></span>
+                </div>
+            </div>
             <div class="setting-item" style="border-bottom:none;padding-bottom:0"><div><div class="label">退出账户</div><div class="desc">退出后需重新登录</div></div><button class="btn-danger" id="settingsLogout">退出</button></div>
             <button class="close-settings" id="closeSettings">关闭</button>
+            <div class="panel-info">
+                <strong>开发者连接</strong><br>
+                <a href="https://astras.cc" target="_blank">Astras.cc</a> ·
+                <a href="https://github.com/ningqi24/minichat.astras" target="_blank">GitHub 仓库</a><br>
+                By <a href="https://github.com/ningqi24" target="_blank">ningqi24</a><br>
+                License: MIT<br>
+                Inspired by "SimpleChat" (<a href="https://space.bilibili.com/1447858895" target="_blank">B站</a>)<br>
+                Basied on "Chatmini" "Astras.cc" "Supabase.com" "Spacemail.com"
+            </div>
             <div class="panel-version" id="panelVersion"></div>
         </div>
     </div>
@@ -441,9 +459,9 @@
 </div>
 
 <script>
-var APP_VERSION = '2.7.2';
+var APP_VERSION = '2.7.3';
 
-(function checkRemoteVersion() {
+function checkForUpdate() {
     var currentVersion = APP_VERSION;
     document.getElementById('currentVerDisplay').textContent = currentVersion;
 
@@ -459,12 +477,28 @@ var APP_VERSION = '2.7.2';
                 document.getElementById('newVerDisplay').textContent = remoteVersion;
                 document.getElementById('versionUpdateModal').classList.add('active');
                 localStorage.setItem('minichat_latest_version', remoteVersion);
+            } else {
+                var statusEl = document.getElementById('updateCheckStatus');
+                if (statusEl) {
+                    statusEl.textContent = '当前已是最新版本';
+                    statusEl.style.color = '#4ade80';
+                    setTimeout(function() { statusEl.textContent = ''; }, 3000);
+                }
             }
         })
         .catch(function(err) {
             console.warn('版本检测失败:', err.message);
+            var statusEl = document.getElementById('updateCheckStatus');
+            if (statusEl) {
+                statusEl.textContent = '检测失败，请稍后重试';
+                statusEl.style.color = '#f87171';
+                setTimeout(function() { statusEl.textContent = ''; }, 3000);
+            }
         });
-})();
+}
+
+// 页面加载时自动检测一次
+checkForUpdate();
 
 (function enforceLocalCache() {
     var currentVersion = APP_VERSION;
@@ -800,7 +834,6 @@ function showUserProfile(email) {
     var on = !!ou;
     profileStatus.textContent = on ? '在线' : '离线';
     profileStatus.className = 'status-badge' + (on ? '' : ' offline');
-    // 已删除注册时间和最后登录显示
     profileModal.classList.add('active');
 }
 
@@ -888,7 +921,6 @@ qjJump.addEventListener('click', async function() {
     qjStatus.textContent = '正在查找原始消息...';
     qjStatus.style.color = 'var(--text-secondary)';
 
-    // 1. 优先在当前已渲染的消息中查找
     var elements = messageList.querySelectorAll('.message');
     var bestMatch = null;
     var targetTime = new Date(data.time).getTime();
@@ -921,7 +953,6 @@ qjJump.addEventListener('click', async function() {
         return;
     }
 
-    // 2. 如果有 messageId 则直接数据库查询
     if (messageId) {
         qjStatus.textContent = '正在数据库中查找…';
         try {
@@ -1716,6 +1747,9 @@ displayNameInput.addEventListener('keydown', function(e) { if (e.key === 'Enter'
         saveDisplayName(); } });
 avatarUploadBtn.addEventListener('click', function() { avatarFileInput.click(); });
 avatarFileInput.addEventListener('change', function(e) { if (e.target.files.length) uploadAvatar(e.target.files[0]); this.value = ''; });
+document.getElementById('checkUpdateBtn').addEventListener('click', function() {
+    checkForUpdate();
+});
 onlineUsersBtn.addEventListener('click', function(e) { e.stopPropagation();
     onlineModal.classList.toggle('active'); });
 closeOnlineModal.addEventListener('click', function() { onlineModal.classList.remove('active'); });
