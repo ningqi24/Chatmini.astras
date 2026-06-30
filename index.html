@@ -11,7 +11,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="version" content="2.8.3" />
+    <meta name="version" content="2.8.4" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <style>
         :root{--bg-primary:#0d0d0d;--bg-secondary:#1a1a1a;--bg-sidebar:#121212;--bg-card:#1e1e1e;--bg-input:#2a2a2a;--bg-hover:#2a2a2a;--bg-overlay:rgba(0,0,0,0.7);--text-primary:#e8e8e8;--text-secondary:#a0a0a0;--text-muted:#6b6b6b;--accent:#3b82f6;--accent-hover:#2563eb;--border-color:#2a2a2a;--shadow:0 8px 30px rgba(0,0,0,0.6);--radius:16px;--radius-sm:10px;--transition:0.2s ease;--avatar-size:28px;--mention-color:#fbbf24;--bubble-me:#0f0f0f;--bubble-me-border:#1a1a1a;--quote-bg:rgba(59,130,246,0.1);--quote-border:#3b82f6;--quote-author:#60a5fa;--code-bg:rgba(255,255,255,0.1);--code-border:rgba(128,128,128,0.2);--link-color:#60a5fa}
@@ -253,7 +253,7 @@
         .settings-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;z-index:300;transition:opacity .25s,visibility .25s;opacity:0;visibility:hidden;pointer-events:none}
         .settings-overlay.active{opacity:1;visibility:visible;pointer-events:auto}
         .settings-panel{background:var(--bg-card);border-radius:var(--radius);padding:28px 32px;width:min(94%, 560px);max-width:560px;border:1px solid var(--border-color);box-shadow:var(--shadow);max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;gap:24px}
-        .settings-group{background:var(--bg-input);border-radius:var(--radius-sm);padding:20px;overflow:hidden}
+        .settings-group{background:var(--bg-input);border-radius:var(--radius-sm);padding:20px}
         .settings-group-title{font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:16px;display:flex;align-items:center;gap:8px}
         .settings-group-title::before{content:'';width:4px;height:16px;background:var(--accent);border-radius:2px}
         .setting-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-color)}
@@ -561,7 +561,7 @@
 </div>
 
 <script>
-var APP_VERSION = '2.8.3';
+var APP_VERSION = '2.8.4';
 // === 新消息浮动按钮逻辑 ===
 var newMessagesBtn = document.getElementById('newMessagesBtn');
 var newMsgBadge = document.getElementById('newMsgBadge');
