@@ -11,7 +11,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="version" content="2.9.0" />
+    <meta name="version" content="2.9.1" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <style>
         /* ========== 全局变量 ========== */
@@ -573,7 +573,7 @@
 </div>
 
 <script>
-var APP_VERSION = '2.9.0';
+var APP_VERSION = '2.9.1';
 // ============================================================
 // 核心状态
 // ============================================================
@@ -593,7 +593,7 @@ var lastTimeDivider = 0;
 // DOM 引用
 // ============================================================
 var $ = function(id){ return document.getElementById(id); };
-var loginOverlay = $('loginOverlay'), mainInterface = $('mainInterface');
+var loginOverlay = $('loginOverlay');
 var authEmail = $('authEmail'), authPassword = $('authPassword'), authMessage = $('authMessage'), authTitle = $('authTitle'), authSub = $('authSub'), btnLogin = $('btnLogin');
 var messageList = $('messageList'), chatInput = $('chatInput'), sidebarUserEmail = $('sidebarUserEmail'), btnSend = $('btnSend');
 var fileInput = $('fileInput'), attachBtn = $('attachBtn');
@@ -610,6 +610,7 @@ var contextMenu = $('contextMenu'), ctxMention = $('ctxMention');
 var searchBar = $('searchBar'), searchInput = $('searchInput'), searchStatus = $('searchStatus'), searchBtn = $('searchBtn'), searchPrev = $('searchPrev'), searchNext = $('searchNext'), searchClose = $('searchClose');
 var newMessagesBtn = $('newMessagesBtn'), newMsgBadge = $('newMsgBadge');
 var conversationList = $('conversationList'), chatTitle = $('chatTitle');
+var mainInterface = $('mainInterface');
 
 // ============================================================
 // Supabase 初始化
@@ -1571,7 +1572,6 @@ var Search = {
         });
         if (skipServerSearch) return;
         if (!term || !term.trim()) return;
-        // 远程搜索（仅当前会话）
         this.runServerSearch(term);
     },
 
@@ -1605,7 +1605,6 @@ var Search = {
             }
             this.serverSearching = false;
             var remote = res.data || [];
-            // 检查是否已加载
             var missing = [];
             for (var i = 0; i < remote.length; i++) {
                 if (!document.querySelector('[data-message-id="' + remote[i].id + '"]')) {
@@ -1614,12 +1613,9 @@ var Search = {
             }
             if (missing.length > 0 && oldestTimestamp && missing[0].created_at < oldestTimestamp) {
                 this.setStatus('加载历史…', false);
-                // 加载更旧的消息（只拉一次）
                 await loadConversationHistory(currentConversationId, true);
-                // 重新跑搜索
                 this.runSearch(term, true, true);
             } else {
-                // 重新高亮
                 this.runSearch(term, true, true);
             }
         } catch(e) {
@@ -1745,6 +1741,9 @@ async function handleLogout() {
     chatInput.value = ''; btnSend.disabled = true; attachments = []; renderAttachments();
 }
 function enterChat() {
+    // 先确保 splash 隐藏
+    var splash = document.getElementById('splash');
+    if (splash) { splash.classList.add('hidden'); setTimeout(function(){ if (splash.parentNode) splash.remove(); }, 600); }
     loginOverlay.classList.add('hidden');
     mainInterface.classList.remove('hidden');
     hasMoreMessages = true; oldestTimestamp = null; isLoadingMore = false; unreadCount = 0;
@@ -1756,7 +1755,12 @@ function enterChat() {
             } else {
                 switchConversation(1);
             }
+        }).catch(function(e){
+            console.warn('加载会话失败，使用默认全局会话', e);
+            switchConversation(1);
         });
+    }).catch(function(e){
+        console.warn('加载用户信息失败', e);
     });
     localStorage.setItem('minichat_user', JSON.stringify({ email: currentEmail, id: currentUserId }));
     loadTheme();
@@ -1770,16 +1774,22 @@ function enterChat() {
 }
 
 // ============================================================
-// 启动
+// 启动逻辑（修复卡顿）
 // ============================================================
 (function() {
-    var DURATION = 2000;
-    var splash = document.getElementById('splash');
-    function hide() {
-        if (!splash) return;
-        splash.classList.add('hidden');
-        setTimeout(function(){ splash.remove(); }, 600);
-        if (loginOverlay) loginOverlay.classList.remove('hidden');
+    var splashEl = document.getElementById('splash');
+    function hideSplashAndShowLogin() {
+        if (!splashEl) return;
+        splashEl.classList.add('hidden');
+        loginOverlay.classList.remove('hidden');
+        setTimeout(function(){ if (splashEl.parentNode) splashEl.remove(); }, 600);
+    }
+
+    // 0.5 秒后强制显示登录界面（无论自动登录是否成功）
+    setTimeout(hideSplashAndShowLogin, 500);
+
+    // 尝试自动登录
+    setTimeout(function(){
         try {
             var raw = localStorage.getItem('minichat_user');
             if (raw) {
@@ -1787,15 +1797,17 @@ function enterChat() {
                 if (user && user.email) {
                     window.currentEmail = user.email;
                     window.currentUserId = user.id || '';
-                    window.supabase.auth.getSession().then(function(data) {
-                        if (data.data.session && typeof window.enterChat === 'function') window.enterChat();
+                    supabase.auth.getSession().then(function(data) {
+                        if (data.data.session && typeof window.enterChat === 'function') {
+                            window.enterChat();
+                        }
+                    }).catch(function(e){
+                        console.warn('自动登录失败', e);
                     });
                 }
             }
         } catch(e) {}
-    }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(hide, DURATION); });
-    else setTimeout(hide, DURATION);
+    }, 600);
 })();
 
 loadTheme();
