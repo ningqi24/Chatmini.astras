@@ -11,7 +11,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="version" content="2.7.7" />
+    <meta name="version" content="2.7.8" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <style>
         :root{--bg-primary:#0d0d0d;--bg-secondary:#1a1a1a;--bg-sidebar:#121212;--bg-card:#1e1e1e;--bg-input:#2a2a2a;--bg-hover:#2a2a2a;--bg-overlay:rgba(0,0,0,0.7);--text-primary:#e8e8e8;--text-secondary:#a0a0a0;--text-muted:#6b6b6b;--accent:#3b82f6;--accent-hover:#2563eb;--border-color:#2a2a2a;--shadow:0 8px 30px rgba(0,0,0,0.6);--radius:16px;--radius-sm:10px;--transition:0.2s ease;--avatar-size:28px;--mention-color:#fbbf24;--bubble-me:#0f0f0f;--bubble-me-border:#1a1a1a;--quote-bg:rgba(59,130,246,0.1);--quote-border:#3b82f6;--quote-author:#60a5fa;--code-bg:rgba(255,255,255,0.1);--code-border:rgba(128,128,128,0.2);--link-color:#60a5fa}
@@ -356,13 +356,13 @@
             <div class="settings-group">
                 <div class="settings-group-title">个人资料</div>
                 <div class="setting-item">
-                    <div class="setting-info"><div class="setting-label">头像</div><div class="setting-desc">点击上传新头像</div></div>
+                    <div><div class="setting-label">头像</div><div class="setting-desc">点击上传新头像</div></div>
                     <div class="setting-control" style="display:flex;align-items:center;gap:12px">
                         <div class="avatar-upload-area"><img class="preview" id="avatarPreview" src="" alt="头像预览"/><button class="upload-btn" id="avatarUploadBtn" style="padding:6px 14px;font-size:12px">上传</button><input type="file" id="avatarFileInput" accept="image/*"/></div>
                     </div>
                 </div>
                 <div class="setting-item">
-                    <div class="setting-info"><div class="setting-label">显示昵称</div><div class="setting-desc">其他成员将看到这个名字</div></div>
+                    <div><div class="setting-label">显示昵称</div><div class="setting-desc">其他成员将看到这个名字</div></div>
                     <div class="setting-control" style="flex:1;max-width:260px">
                         <div class="nickname-row"><input type="text" id="displayNameInput" placeholder="输入昵称" maxlength="20"/><button class="btn-save" id="saveDisplayName" style="padding:10px 16px">保存</button></div>
                         <div class="nickname-msg" id="displayNameMessage" style="font-size:12px;margin-top:4px"></div>
@@ -372,22 +372,22 @@
             <div class="settings-group">
                 <div class="settings-group-title">外观</div>
                 <div class="setting-item">
-                    <div class="setting-info"><div class="setting-label">深色模式</div><div class="setting-desc">切换日间/夜间主题</div></div>
+                    <div><div class="setting-label">深色模式</div><div class="setting-desc">切换日间/夜间主题</div></div>
                     <div class="setting-control"><div class="toggle-switch active" id="themeToggle"><div class="knob"></div></div></div>
                 </div>
             </div>
             <div class="settings-group">
                 <div class="settings-group-title">更新</div>
                 <div class="setting-item">
-                    <div class="setting-info"><div class="setting-label">版本检测</div><div class="setting-desc">手动检查更新</div></div>
+                    <div><div class="setting-label">版本检测</div><div class="setting-desc">手动检查更新</div></div>
                     <div class="setting-control"><button class="btn-accent" id="checkUpdateBtn">检测更新</button></div>
                 </div>
-                <div class="setting-item" style="display:none"><div class="setting-info" id="updateCheckStatus"></div></div>
+                <div class="setting-item" style="display:none"><div id="updateCheckStatus"></div></div>
             </div>
             <div class="settings-group">
                 <div class="settings-group-title">账户</div>
                 <div class="setting-item">
-                    <div class="setting-info"><div class="setting-label">退出登录</div><div class="setting-desc">退出后需重新登录</div></div>
+                    <div><div class="setting-label">退出登录</div><div class="setting-desc">退出后需重新登录</div></div>
                     <div class="setting-control"><button class="btn-danger" id="settingsLogout">退出</button></div>
                 </div>
             </div>
@@ -448,7 +448,7 @@
 </div>
 
 <script>
-var APP_VERSION = '2.7.7';
+var APP_VERSION = '2.7.8';
 // === 版本检测 ===
 function checkForUpdate() {
     var currentVersion = APP_VERSION;
@@ -536,7 +536,14 @@ function toggleTheme() {
     localStorage.setItem('minichat_theme', isLight ? 'light' : 'dark');
 }
 
-// === 表情面板 (使用 unicode 字段，修复显示问题) ===
+// === 表情面板 (修复 unicode 显示) ===
+function toEmojiChar(code) {
+    if (typeof code === 'string' && code.startsWith('U+')) {
+        return String.fromCodePoint(parseInt(code.slice(2), 16));
+    }
+    return code;
+}
+
 var allEmojiData = {};
 async function loadEmojiData() {
     try {
@@ -549,11 +556,9 @@ async function loadEmojiData() {
             emojiRes.forEach(item => {
                 const cat = item.category || '其他';
                 if (!emojiGroups[cat]) emojiGroups[cat] = [];
-                // 优先使用 unicode 字段，否则尝试用 innerHTML 解析 htmlCode
                 if (item.unicode) {
-                    emojiGroups[cat].push(item.unicode);
+                    emojiGroups[cat].push(toEmojiChar(item.unicode));
                 } else if (item.htmlCode && item.htmlCode.length) {
-                    // htmlCode 是 HTML 实体数组，我们存储一个临时对象，渲染时用 innerHTML
                     emojiGroups[cat].push({ __html: item.htmlCode[0] });
                 }
             });
@@ -595,11 +600,10 @@ function renderGrid(items) {
     items.forEach(emoji => {
         const span = document.createElement('span');
         span.className = 'emoji-item' + (typeof emoji === 'string' && emoji.length > 2 ? ' kaomoji-item' : '');
-        // 根据类型渲染
         if (typeof emoji === 'string') {
             span.textContent = emoji;
         } else if (emoji && emoji.__html) {
-            span.innerHTML = emoji.__html;   // HTML 实体解析
+            span.innerHTML = emoji.__html;
         } else {
             span.textContent = String(emoji);
         }
