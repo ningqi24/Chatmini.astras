@@ -11,7 +11,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="version" content="2.8.1" />
+    <meta name="version" content="2.8.2" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <style>
         :root{--bg-primary:#0d0d0d;--bg-secondary:#1a1a1a;--bg-sidebar:#121212;--bg-card:#1e1e1e;--bg-input:#2a2a2a;--bg-hover:#2a2a2a;--bg-overlay:rgba(0,0,0,0.7);--text-primary:#e8e8e8;--text-secondary:#a0a0a0;--text-muted:#6b6b6b;--accent:#3b82f6;--accent-hover:#2563eb;--border-color:#2a2a2a;--shadow:0 8px 30px rgba(0,0,0,0.6);--radius:16px;--radius-sm:10px;--transition:0.2s ease;--avatar-size:28px;--mention-color:#fbbf24;--bubble-me:#0f0f0f;--bubble-me-border:#1a1a1a;--quote-bg:rgba(59,130,246,0.1);--quote-border:#3b82f6;--quote-author:#60a5fa;--code-bg:rgba(255,255,255,0.1);--code-border:rgba(128,128,128,0.2);--link-color:#60a5fa}
@@ -297,8 +297,26 @@
         .typing-dots span:nth-child(2){animation-delay:0.2s}
         .typing-dots span:nth-child(3){animation-delay:0.4s}
         @keyframes typingDot{0%,60%,100%{transform:translateY(0);opacity:0.3}30%{transform:translateY(-4px);opacity:1}}
-        @media(max-width:768px){.sidebar{width:200px;padding:12px}.sidebar .nav-item span{display:none}.sidebar .nav-item{justify-content:center}.sidebar .user-email{font-size:11px;text-align:center}.chat-main .chat-header{padding:12px 16px}.chat-main .chat-messages{padding:12px}.chat-main .input-area{padding:10px 16px 16px;gap:6px}.login-card{padding:28px 20px}.splash-icons img{height:50px}.splash-icons{gap:20px}.online-modal{right:10px;left:10px;top:50px;max-width:none}.chat-main .message{max-width:90%}.attachment-area{padding:4px 12px}.mention-dropdown{bottom:calc(100% + 2px)}.upload-overlay .upload-dialog{padding:24px 20px;min-width:auto;width:85%}.quote-jump-modal .modal-box{padding:20px}.version-update-modal .modal-box{padding:24px}}
-        @media(max-width:480px){.sidebar{width:60px;padding:8px}.sidebar .logo-area img{height:28px;max-width:40px}.sidebar .nav-item{padding:10px}.splash-icons img{height:40px}.splash-icons{gap:14px}.splash-status{font-size:10px;margin-top:16px}}
+        @media(max-width:768px){.sidebar{width:200px;padding:12px}.sidebar .nav-item span{display:none}.sidebar .nav-item{justify-content:center}.sidebar .user-email{font-size:11px;text-align:center}.chat-main .chat-header{padding:12px 16px}.chat-main .chat-messages{padding:12px}.chat-main .input-area{padding:10px 16px 16px;gap:6px}.login-card{padding:28px 20px}.splash-icons img{height:50px}.splash-icons{gap:20px}.online-modal{right:10px;left:10px;top:50px;max-width:none}.chat-main .message{max-width:90%}.attachment-area{padding:4px 12px}.mention-dropdown{bottom:calc(100% + 2px)}.upload-overlay .upload-dialog{padding:24px 20px;min-width:auto;width:85%}.quote-jump-modal .modal-box{padding:20px}.version-update-modal .modal-box{padding:24px}
+            /* 设置面板移动端优化 */
+            .settings-panel { padding: 20px 16px; }
+            .settings-group { padding: 16px; }
+            .setting-item { flex-wrap: wrap; gap: 8px; }
+            .setting-control { margin-left: 0; width: 100%; }
+            .nickname-row { flex-wrap: wrap; }
+            .nickname-row input { flex: 1 1 140px; }
+            .avatar-upload-area { flex-wrap: wrap; justify-content: center; }
+            .avatar-upload-area .upload-btn { width: 100%; text-align: center; }
+        }
+        @media(max-width:480px){.sidebar{width:60px;padding:8px}.sidebar .logo-area img{height:28px;max-width:40px}.sidebar .nav-item{padding:10px}.splash-icons img{height:40px}.splash-icons{gap:14px}.splash-status{font-size:10px;margin-top:16px}
+            .settings-panel { padding: 16px 12px; }
+            .settings-group { padding: 12px; }
+            .settings-group-title { font-size: 13px; }
+            .setting-label { font-size: 14px; }
+            .setting-control { width: 100%; }
+            .btn-save, .btn-danger, .btn-accent { padding: 8px 12px; font-size: 12px; }
+            .nickname-row input { font-size: 13px; padding: 8px 10px; }
+        }
         /* === 搜索栏 & 高亮 === */
         /* === 搜索栏 === */
         .search-bar{display:none;padding:10px 16px;background:var(--bg-secondary);border-bottom:1px solid var(--border-color);align-items:center;gap:8px;animation:searchBarIn .18s ease-out}
@@ -357,11 +375,11 @@
         <main class="chat-main">
             <div class="chat-header">
                 <div class="chat-title">全局聊天<small># 所有成员</small></div>
-                <div class="chat-header-right"><span id="onlineStatus">● 在线</span><button class="btn-icon" id="searchBtn" title="搜索消息（Ctrl+F）"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="10.5" cy="10.5" rx="6" ry="6.5" transform="rotate(-12 10.5 10.5)"/><line x1="15.5" y1="15.5" x2="20" y2="20" stroke-width="2.8"/><line x1="7.3" y1="8.8" x2="13.7" y2="8.8" stroke-width="1.4"/><line x1="7.3" y1="11.8" x2="11.6" y2="11.8" stroke-width="1.4"/></svg></button><button class="online-users-btn" id="onlineUsersBtn" title="在线用户"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="online-badge" id="onlineBadge">0</span></button></div>
+                <div class="chat-header-right"><span id="onlineStatus">● 在线</span><button class="btn-icon" id="searchBtn" title="搜索消息（Ctrl+F）"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button><button class="online-users-btn" id="onlineUsersBtn" title="在线用户"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="online-badge" id="onlineBadge">0</span></button></div>
             </div>
             <div class="search-bar" id="searchBar">
                 <div class="search-input-wrap">
-                    <svg class="search-input-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="10.5" cy="10.5" rx="6" ry="6.5" transform="rotate(-12 10.5 10.5)"/><line x1="15.5" y1="15.5" x2="20" y2="20" stroke-width="2.8"/><line x1="7.3" y1="8.8" x2="13.7" y2="8.8" stroke-width="1.4"/><line x1="7.3" y1="11.8" x2="11.6" y2="11.8" stroke-width="1.4"/></svg>
+                    <svg class="search-input-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                     <input type="text" id="searchInput" placeholder="搜索消息…" autocomplete="off" spellcheck="false" aria-label="搜索消息">
                     <button class="search-clear-btn" id="searchClearInput" type="button" title="清空 (Ctrl+Backspace)" aria-label="清空输入">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -506,7 +524,7 @@
 </div>
 
 <script>
-var APP_VERSION = '2.8.1';
+var APP_VERSION = '2.8.2';
 // === 新消息浮动按钮逻辑 ===
 var newMessagesBtn = document.getElementById('newMessagesBtn');
 var newMsgBadge = document.getElementById('newMsgBadge');
