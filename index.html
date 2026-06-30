@@ -300,11 +300,28 @@
         @media(max-width:768px){.sidebar{width:200px;padding:12px}.sidebar .nav-item span{display:none}.sidebar .nav-item{justify-content:center}.sidebar .user-email{font-size:11px;text-align:center}.chat-main .chat-header{padding:12px 16px}.chat-main .chat-messages{padding:12px}.chat-main .input-area{padding:10px 16px 16px;gap:6px}.login-card{padding:28px 20px}.splash-icons img{height:50px}.splash-icons{gap:20px}.online-modal{right:10px;left:10px;top:50px;max-width:none}.chat-main .message{max-width:90%}.attachment-area{padding:4px 12px}.mention-dropdown{bottom:calc(100% + 2px)}.upload-overlay .upload-dialog{padding:24px 20px;min-width:auto;width:85%}.quote-jump-modal .modal-box{padding:20px}.version-update-modal .modal-box{padding:24px}}
         @media(max-width:480px){.sidebar{width:60px;padding:8px}.sidebar .logo-area img{height:28px;max-width:40px}.sidebar .nav-item{padding:10px}.splash-icons img{height:40px}.splash-icons{gap:14px}.splash-status{font-size:10px;margin-top:16px}}
         /* === 搜索栏 & 高亮 === */
-        .search-bar{display:none;padding:8px 24px;background:var(--bg-secondary);border-bottom:1px solid var(--border-color);align-items:center;gap:8px}
-        .search-bar input{flex:1;padding:8px 14px;border-radius:20px;border:1px solid var(--border-color);background:var(--bg-input);color:var(--text-primary);outline:none;font-size:14px}
-        .search-bar input:focus{border-color:var(--accent,#4f7cff)}
-        .search-highlight{background:rgba(255,235,59,0.5);color:#000;border-radius:2px;padding:0 1px}
-        .search-highlight.current{background:#ff9800;color:#fff}
+        /* === 搜索栏 === */
+        .search-bar{display:none;padding:10px 16px;background:var(--bg-secondary);border-bottom:1px solid var(--border-color);align-items:center;gap:8px;animation:searchBarIn .18s ease-out}
+        .search-bar.open{display:flex}
+        @keyframes searchBarIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+        .search-input-wrap{flex:1;position:relative;display:flex;align-items:center}
+        .search-input-icon{position:absolute;left:12px;color:var(--text-muted);pointer-events:none}
+        .search-input-wrap input{flex:1;width:100%;padding:8px 34px 8px 36px;border-radius:20px;border:1px solid var(--border-color);background:var(--bg-input);color:var(--text-primary);outline:none;font-size:14px;font-family:inherit;transition:border-color .15s,box-shadow .15s}
+        .search-input-wrap input:focus{border-color:var(--accent,#4f7cff);box-shadow:0 0 0 3px rgba(79,124,255,.15)}
+        .search-input-wrap input::-webkit-search-cancel-button{display:none}
+        .search-clear-btn{position:absolute;right:6px;background:transparent;border:none;cursor:pointer;padding:5px;border-radius:50%;color:var(--text-muted);display:none;align-items:center;justify-content:center;transition:all .15s}
+        .search-clear-btn.visible{display:flex}
+        .search-clear-btn:hover{background:var(--bg-hover,rgba(0,0,0,.08));color:var(--text-primary)}
+        .search-status{font-size:12px;color:var(--text-muted);white-space:nowrap;min-width:54px;text-align:center;font-variant-numeric:tabular-nums;user-select:none}
+        .search-status.no-result{color:var(--accent,#4f7cff)}
+        .search-nav-btn{background:transparent;border:none;cursor:pointer;padding:6px;border-radius:6px;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;transition:all .15s}
+        .search-nav-btn:hover:not(:disabled){background:var(--bg-hover,rgba(0,0,0,.08));color:var(--text-primary)}
+        .search-nav-btn:active:not(:disabled){transform:scale(.92)}
+        .search-nav-btn:disabled{opacity:.35;cursor:not-allowed}
+        /* === 搜索高亮 === */
+        .search-highlight{background:rgba(255,235,59,.5);color:inherit;border-radius:2px;padding:0 1px;box-shadow:0 0 0 1px rgba(255,235,59,.6);transition:background .15s,box-shadow .15s,color .15s}
+        .search-highlight.current{background:#ff9800;color:#fff;box-shadow:0 0 0 2px rgba(255,152,0,.4);animation:currentPulse .4s ease-out}
+        @keyframes currentPulse{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
         /* === 侧边栏未读徽标 === */
         .nav-item{position:relative}
         .sidebar-badge{position:absolute;top:6px;right:14px;min-width:18px;height:18px;border-radius:9px;background:#ef4444;color:#fff;font-size:11px;font-weight:600;display:none;align-items:center;justify-content:center;padding:0 5px;line-height:1;box-shadow:0 1px 3px rgba(0,0,0,.2)}
@@ -343,11 +360,23 @@
                 <div class="chat-header-right"><span id="onlineStatus">● 在线</span><button class="btn-icon" id="searchBtn" title="搜索消息（Ctrl+F）"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button><button class="online-users-btn" id="onlineUsersBtn" title="在线用户"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="online-badge" id="onlineBadge">0</span></button></div>
             </div>
             <div class="search-bar" id="searchBar">
-                <input type="text" id="searchInput" placeholder="搜索消息… (Enter 下个 / Shift+Enter 上个 / Esc 关闭)">
-                <span id="searchStatus" style="font-size:12px;color:var(--text-muted);white-space:nowrap;min-width:48px;text-align:right"></span>
-                <button class="btn-icon" id="searchPrev" title="上一个 (Shift+Enter)">↑</button>
-                <button class="btn-icon" id="searchNext" title="下一个 (Enter)">↓</button>
-                <button class="btn-icon" id="searchClose" title="关闭 (Esc)">✕</button>
+                <div class="search-input-wrap">
+                    <svg class="search-input-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="searchInput" placeholder="搜索消息…" autocomplete="off" spellcheck="false" aria-label="搜索消息">
+                    <button class="search-clear-btn" id="searchClearInput" type="button" title="清空 (Ctrl+Backspace)" aria-label="清空输入">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+                <span class="search-status" id="searchStatus" aria-live="polite"></span>
+                <button class="search-nav-btn" id="searchPrev" type="button" title="上一个 (Shift+Enter)" aria-label="上一个匹配" disabled>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>
+                </button>
+                <button class="search-nav-btn" id="searchNext" type="button" title="下一个 (Enter)" aria-label="下一个匹配" disabled>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <button class="search-nav-btn" id="searchClose" type="button" title="关闭 (Esc)" aria-label="关闭搜索">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
             </div>
             <div class="online-modal" id="onlineModal"><div class="online-modal-header"><span>在线用户 (<span id="modalOnlineCount">0</span>)</span><button class="online-modal-close" id="closeOnlineModal">&times;</button></div><div class="online-user-list" id="onlineUserList"></div></div>
             <div class="chat-messages" id="messageList"></div>
@@ -578,158 +607,299 @@ messageList.addEventListener('scroll', function() {
 });
 
 // === 消息搜索 ===
-var searchResults = [];
-var currentSearchIndex = 0;
-var searchTerm = '';
+var Search = {
+    open: false,
+    term: '',
+    results: [],          // 已匹配的消息元素(顺序)
+    index: -1,            // 当前选中项在 results 中的下标
+    debounceId: null,
+    refreshTimer: null,
+    observer: null,
+    observerPaused: false,
 
-function openSearch() {
-    searchBar.style.display = 'flex';
-    setTimeout(function() { searchInput.focus(); searchInput.select(); }, 0);
-}
-function closeSearch() {
-    searchBar.style.display = 'none';
-    searchInput.value = '';
-    searchTerm = '';
-    searchResults = [];
-    currentSearchIndex = 0;
-    searchStatus.textContent = '';
-    clearHighlights();
-}
+    init: function() {
+        this.elBar     = searchBar;
+        this.elInput   = searchInput;
+        this.elStatus  = searchStatus;
+        this.elBtn     = searchBtn;
+        this.elPrev    = searchPrev;
+        this.elNext    = searchNext;
+        this.elClose   = searchClose;
+        this.elClear   = document.getElementById('searchClearInput');
 
-function escRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+        if (this.elBtn)   this.elBtn.addEventListener('click',   this.toggle.bind(this));
+        if (this.elClose) this.elClose.addEventListener('click', this.close.bind(this));
+        if (this.elPrev)  this.elPrev.addEventListener('click',  this.prev.bind(this));
+        if (this.elNext)  this.elNext.addEventListener('click',  this.next.bind(this));
+        if (this.elClear) this.elClear.addEventListener('click', this.clearInput.bind(this));
 
-function clearHighlights() {
-    var msgs = document.querySelectorAll('.message');
-    msgs.forEach(function(m) {
-        if (m._originalHTML !== undefined) {
-            m.innerHTML = m._originalHTML;
-            delete m._originalHTML;
+        if (this.elInput) {
+            this.elInput.addEventListener('input', this.onInput.bind(this));
+            this.elInput.addEventListener('keydown', this.onKeyDown.bind(this));
         }
-    });
-}
 
-function performSearch(term) {
-    clearHighlights();
-    searchResults = [];
-    currentSearchIndex = 0;
-    searchTerm = term;
-    if (!term.trim()) {
-        searchStatus.textContent = '';
-        return;
-    }
-    var regex = new RegExp(escRegex(term), 'gi');
-    var messages = messageList.querySelectorAll('.message');
-    messages.forEach(function(msg) {
-        // 只在纯文本节点中高亮,避免破坏头像、按钮等元素
-        var walker = document.createTreeWalker(msg, NodeFilter.SHOW_TEXT, null, false);
-        var textNodes = [];
-        var n;
-        while ((n = walker.nextNode())) {
-            // 跳过已高亮或脚本/样式
-            if (n.parentElement && n.parentElement.closest('.search-highlight')) continue;
-            textNodes.push(n);
-        }
-        var matched = false;
-        textNodes.forEach(function(tn) {
-            regex.lastIndex = 0;
-            if (!regex.test(tn.nodeValue)) return;
-            matched = true;
-            regex.lastIndex = 0;
-            var frag = document.createDocumentFragment();
-            var lastIdx = 0;
-            var m;
-            while ((m = regex.exec(tn.nodeValue)) !== null) {
-                if (m.index > lastIdx) frag.appendChild(document.createTextNode(tn.nodeValue.slice(lastIdx, m.index)));
-                var span = document.createElement('span');
-                span.className = 'search-highlight';
-                span.textContent = m[0];
-                frag.appendChild(span);
-                lastIdx = m.index + m[0].length;
-                if (m[0].length === 0) regex.lastIndex++;
+        // 全局快捷键 Ctrl/Cmd+F (主界面可见时拦截)
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'F')) {
+                if (mainInterface && mainInterface.style.display !== 'none') {
+                    e.preventDefault();
+                    Search.toggle();
+                }
             }
-            if (lastIdx < tn.nodeValue.length) frag.appendChild(document.createTextNode(tn.nodeValue.slice(lastIdx)));
-            tn.parentNode.replaceChild(frag, tn);
         });
-        if (matched) searchResults.push(msg);
-    });
-    if (searchResults.length > 0) {
-        searchStatus.textContent = '1/' + searchResults.length;
-        scrollToResult(0);
-    } else {
-        searchStatus.textContent = '无结果';
-    }
-}
 
-function scrollToResult(index) {
-    if (searchResults.length === 0) return;
-    var prev = document.querySelector('.search-highlight.current');
-    if (prev) prev.classList.remove('current');
-    var el = searchResults[index];
-    var hl = el.querySelector('.search-highlight');
-    if (hl) {
-        hl.classList.add('current');
-        hl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    searchStatus.textContent = (index + 1) + '/' + searchResults.length;
-}
+        this.setupObserver();
+    },
 
-function stepResult(delta) {
-    if (searchResults.length === 0) return;
-    currentSearchIndex = (currentSearchIndex + delta + searchResults.length) % searchResults.length;
-    scrollToResult(currentSearchIndex);
-}
+    setupObserver: function() {
+        if (typeof MutationObserver === 'undefined' || !messageList) return;
+        var self = this;
+        this.observer = new MutationObserver(function() {
+            if (self.observerPaused || !self.term || !self.open) return;
+            clearTimeout(self.refreshTimer);
+            self.refreshTimer = setTimeout(function() {
+                if (self.term && self.open) self.runSearch(self.term, true);
+            }, 300);
+        });
+        this.observer.observe(messageList, { childList: true, subtree: true });
+    },
 
-if (searchBtn) searchBtn.addEventListener('click', openSearch);
-if (searchClose) searchClose.addEventListener('click', closeSearch);
-if (searchPrev) searchPrev.addEventListener('click', function() { stepResult(-1); });
-if (searchNext) searchNext.addEventListener('click', function() { stepResult(1); });
-if (searchInput) {
-    searchInput.addEventListener('input', function() { performSearch(this.value); });
-    searchInput.addEventListener('keydown', function(e) {
+    // 用 disconnect/reconnect 避免观察自己造成的死循环
+    withObserverPaused: function(fn) {
+        if (this.observer) this.observer.disconnect();
+        this.observerPaused = true;
+        try { fn(); } finally {
+            this.observerPaused = false;
+            if (this.observer && this.open && messageList) {
+                this.observer.observe(messageList, { childList: true, subtree: true });
+            }
+        }
+    },
+
+    toggle: function() {
+        if (this.open) this.close(); else this.openPanel();
+    },
+
+    openPanel: function() {
+        if (this.open) return;
+        this.open = true;
+        this.elBar.classList.add('open');
+        var self = this;
+        setTimeout(function() { self.elInput.focus(); if (self.term) self.elInput.select(); }, 30);
+    },
+
+    close: function() {
+        if (!this.open) return;
+        var self = this;
+        this.withObserverPaused(function() {
+            self.open = false;
+            self.elBar.classList.remove('open');
+            self.elInput.value = '';
+            self.setClearVisible(false);
+            self.term = '';
+            self.results = [];
+            self.index = -1;
+            self.setStatus('');
+            self.clearHighlights();
+            self.updateNavButtons();
+        });
+    },
+
+    clearInput: function() {
+        this.elInput.value = '';
+        this.setClearVisible(false);
+        this.runSearchImmediately('');
+        this.elInput.focus();
+    },
+
+    onInput: function() {
+        var v = this.elInput.value;
+        this.setClearVisible(!!v);
+        clearTimeout(this.debounceId);
+        var self = this;
+        this.debounceId = setTimeout(function() {
+            self.runSearch(v, false);
+        }, 180);
+    },
+
+    runSearchImmediately: function(term) {
+        clearTimeout(this.debounceId);
+        this.runSearch(term, false);
+    },
+
+    onKeyDown: function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
-            stepResult(e.shiftKey ? -1 : 1);
+            // 有结果才跳转,否则不响应
+            if (this.results.length > 0) {
+                if (e.shiftKey) this.prev(); else this.next();
+            }
         } else if (e.key === 'Escape') {
             e.preventDefault();
-            closeSearch();
-        }
-    });
-}
-
-// Ctrl/Cmd+F 全局快捷键
-document.addEventListener('keydown', function(e) {
-    if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'F')) {
-        // 只有在主界面可见时才拦截
-        if (mainInterface && mainInterface.style.display !== 'none') {
+            this.close();
+        } else if (e.key === 'Backspace' && (e.ctrlKey || e.metaKey)) {
             e.preventDefault();
-            openSearch();
+            this.clearInput();
         }
-    }
-});
+    },
 
-// 重新加载消息后,保持当前搜索状态
-var _origLoadHistory = window.loadHistory;
-var _searchObserver = null;
-function refreshSearchAfterMessageChange() {
-    if (!searchTerm) return;
-    // 重新执行搜索以同步高亮
-    var currentIdx = currentSearchIndex;
-    performSearch(searchTerm);
-    if (searchResults.length > 0) {
-        currentSearchIndex = Math.min(currentIdx, searchResults.length - 1);
-        scrollToResult(currentSearchIndex);
+    runSearch: function(term, isRefresh) {
+        if (!this.open) return;
+        var self = this;
+        this.withObserverPaused(function() {
+            self.clearHighlights();
+            self.term = term;
+
+            if (!term || !term.trim()) {
+                self.results = [];
+                self.index = -1;
+                self.setStatus('');
+                self.updateNavButtons();
+                return;
+            }
+
+            var regex = new RegExp(escRegex(term), 'gi');
+            var messages = messageList.querySelectorAll('.message');
+            var matched = [];
+            for (var i = 0; i < messages.length; i++) {
+                if (highlightInElement(messages[i], regex)) matched.push(messages[i]);
+            }
+            self.results = matched;
+
+            // 选择下标:刷新时尽量保持当前消息,新搜索时从头开始
+            var prevMsg = (self.index >= 0 && self.index < self.results.length) ? self.results[self.index] : null;
+            self.results = matched;
+            if (!isRefresh) {
+                self.index = matched.length > 0 ? 0 : -1;
+            } else if (prevMsg && matched.indexOf(prevMsg) >= 0) {
+                self.index = matched.indexOf(prevMsg);
+            } else if (matched.length > 0) {
+                self.index = 0;
+            } else {
+                self.index = -1;
+            }
+
+            if (matched.length === 0) {
+                self.setStatus('无结果', true);
+            } else {
+                self.setStatus((self.index + 1) + ' / ' + matched.length, false);
+                self.scrollToCurrent();
+            }
+            self.updateNavButtons();
+        });
+    },
+
+    next: function() {
+        if (this.results.length === 0) return;
+        this.index = (this.index + 1) % this.results.length;
+        this.setStatus((this.index + 1) + ' / ' + this.results.length, false);
+        this.scrollToCurrent();
+    },
+
+    prev: function() {
+        if (this.results.length === 0) return;
+        this.index = (this.index - 1 + this.results.length) % this.results.length;
+        this.setStatus((this.index + 1) + ' / ' + this.results.length, false);
+        this.scrollToCurrent();
+    },
+
+    scrollToCurrent: function() {
+        if (this.index < 0 || this.index >= this.results.length) return;
+        var prevs = document.querySelectorAll('.search-highlight.current');
+        for (var i = 0; i < prevs.length; i++) prevs[i].classList.remove('current');
+        var el = this.results[this.index];
+        if (!el) return;
+        var hl = el.querySelector('.search-highlight');
+        if (hl) {
+            hl.classList.add('current');
+            // 重新触发动画
+            hl.style.animation = 'none';
+            // eslint-disable-next-line no-unused-expressions
+            hl.offsetHeight;
+            hl.style.animation = '';
+            try { hl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+            catch (e) { hl.scrollIntoView(); }
+        }
+    },
+
+    updateNavButtons: function() {
+        var has = this.results.length > 0;
+        if (this.elPrev) this.elPrev.disabled = !has;
+        if (this.elNext) this.elNext.disabled = !has;
+    },
+
+    clearHighlights: function() {
+        var msgs = document.querySelectorAll('.message[data-search-orig]');
+        for (var i = 0; i < msgs.length; i++) {
+            msgs[i].innerHTML = msgs[i].getAttribute('data-search-orig');
+            msgs[i].removeAttribute('data-search-orig');
+        }
+        var currents = document.querySelectorAll('.search-highlight.current');
+        for (var j = 0; j < currents.length; j++) currents[j].classList.remove('current');
+    },
+
+    setStatus: function(text, isError) {
+        if (!this.elStatus) return;
+        this.elStatus.textContent = text;
+        if (isError) this.elStatus.classList.add('no-result');
+        else this.elStatus.classList.remove('no-result');
+    },
+
+    setClearVisible: function(show) {
+        if (!this.elClear) return;
+        if (show) this.elClear.classList.add('visible');
+        else this.elClear.classList.remove('visible');
     }
+};
+
+function escRegex(s) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
-// 监听 messageList 变化,自动重新应用搜索高亮
-if (typeof MutationObserver !== 'undefined' && messageList) {
-    _searchObserver = new MutationObserver(function(muts) {
-        if (!searchTerm) return;
-        // 简单去抖
-        clearTimeout(refreshSearchAfterMessageChange._t);
-        refreshSearchAfterMessageChange._t = setTimeout(refreshSearchAfterMessageChange, 200);
+
+// 只在文本节点上高亮,不动结构元素(头像/按钮/@提及)
+function highlightInElement(root, regex) {
+    if (!root.hasAttribute('data-search-orig')) {
+        root.setAttribute('data-search-orig', root.innerHTML);
+    }
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+        acceptNode: function(n) {
+            if (!n.parentElement) return NodeFilter.FILTER_REJECT;
+            if (n.parentElement.closest('script,style,.search-highlight')) return NodeFilter.FILTER_REJECT;
+            return NodeFilter.FILTER_ACCEPT;
+        }
     });
-    _searchObserver.observe(messageList, { childList: true, subtree: true });
+    var textNodes = [];
+    var n;
+    while ((n = walker.nextNode())) textNodes.push(n);
+
+    var matched = false;
+    for (var i = 0; i < textNodes.length; i++) {
+        var tn = textNodes[i];
+        regex.lastIndex = 0;
+        var text = tn.nodeValue;
+        if (!regex.test(text)) continue;
+        matched = true;
+        regex.lastIndex = 0;
+
+        var frag = document.createDocumentFragment();
+        var lastIdx = 0;
+        var m;
+        while ((m = regex.exec(text)) !== null) {
+            if (m.index > lastIdx) frag.appendChild(document.createTextNode(text.slice(lastIdx, m.index)));
+            var span = document.createElement('span');
+            span.className = 'search-highlight';
+            span.textContent = m[0];
+            frag.appendChild(span);
+            lastIdx = m.index + m[0].length;
+            if (m[0].length === 0) regex.lastIndex++;
+        }
+        if (lastIdx < text.length) frag.appendChild(document.createTextNode(text.slice(lastIdx)));
+        tn.parentNode.replaceChild(frag, tn);
+    }
+    return matched;
 }
+
+Search.init();
 
 // === 启动画面 ===
 (function() {
