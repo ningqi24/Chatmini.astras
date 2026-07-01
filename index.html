@@ -12,7 +12,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <meta name="version" content="2.8.4" />
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="vendor/supabase.min.js"></script>
     <style>
         :root{--bg-primary:#0d0d0d;--bg-secondary:#1a1a1a;--bg-sidebar:#121212;--bg-card:#1e1e1e;--bg-input:#2a2a2a;--bg-hover:#2a2a2a;--bg-overlay:rgba(0,0,0,0.7);--text-primary:#e8e8e8;--text-secondary:#a0a0a0;--text-muted:#6b6b6b;--accent:#3b82f6;--accent-hover:#2563eb;--border-color:#2a2a2a;--shadow:0 8px 30px rgba(0,0,0,0.6);--radius:16px;--radius-sm:10px;--transition:0.2s ease;--avatar-size:28px;--mention-color:#fbbf24;--bubble-me:#0f0f0f;--bubble-me-border:#1a1a1a;--quote-bg:rgba(59,130,246,0.1);--quote-border:#3b82f6;--quote-author:#60a5fa;--code-bg:rgba(255,255,255,0.1);--code-border:rgba(128,128,128,0.2);--link-color:#60a5fa}
         body.light-theme{--bg-primary:#f0f2f5;--bg-secondary:#fff;--bg-sidebar:#f7f8fa;--bg-card:#fff;--bg-input:#eef0f2;--bg-hover:#e8eaed;--bg-overlay:rgba(255,255,255,0.7);--text-primary:#1e293b;--text-secondary:#64748b;--text-muted:#94a3b8;--border-color:#d0d5dd;--shadow:0 8px 30px rgba(0,0,0,0.08);--bubble-me:#dfe3e8;--bubble-me-border:#c8cdd4;--quote-bg:rgba(59,130,246,0.06);--quote-border:#3b82f6;--quote-author:#2563eb;--code-bg:rgba(0,0,0,0.06);--code-border:rgba(0,0,0,0.1);--link-color:#2563eb}
@@ -808,7 +808,7 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     var s = document.createElement('script');
     s.src = src;
     s.onload = function() {
-        if (typeof supabase !== 'undefined' && supabase && supabase.auth) {
+        if (typeof supabase !== 'undefined' && supabase && typeof supabase.createClient === 'function') {
             window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         } else {
             initSupabase(scripts, idx + 1);
@@ -816,7 +816,7 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     };
     s.onerror = function() { initSupabase(scripts, idx + 1); };
     document.head.appendChild(s);
-})(['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js', 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.0.0/supabase.min.js'], 0);
+})(['vendor/supabase.min.js', 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js', 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js'], 0);
 // === DOM 引用 ===
 var $ = function(id) { return document.getElementById(id); };
 var loginOverlay = $('loginOverlay'), mainInterface = $('mainInterface'), authEmail = $('authEmail'), authPassword = $('authPassword'), authMessage = $('authMessage'), authTitle = $('authTitle'), authSub = $('authSub'), btnLogin = $('btnLogin'), messageList = $('messageList'), chatInput = $('chatInput'), sidebarUserEmail = $('sidebarUserEmail'), btnSend = $('btnSend'), fileInput = $('fileInput'), attachBtn = $('attachBtn'), settingsOverlay = $('settingsOverlay'), themeToggle = $('themeToggle'), settingsLogout = $('settingsLogout'), closeSettingsEl = $('closeSettings'), settingsNav = $('settingsNav'), displayNameInput = $('displayNameInput'), saveDisplayNameBtn = $('saveDisplayName'), displayNameMessage = $('displayNameMessage'), onlineStatus = $('onlineStatus'), onlineBadge = $('onlineBadge'), onlineModal = $('onlineModal'), onlineUserList = $('onlineUserList'), modalOnlineCount = $('modalOnlineCount'), onlineUsersBtn = $('onlineUsersBtn'), closeOnlineModal = $('closeOnlineModal'), avatarPreview = $('avatarPreview'), avatarUploadBtn = $('avatarUploadBtn'), avatarFileInput = $('avatarFileInput'), avatarUploadStatus = $('avatarUploadStatus'), profileModal = $('userProfileModal'), profileAvatar = $('profileAvatar'), profileDisplayName = $('profileDisplayName'), profileEmail = $('profileEmail'), profileStatus = $('profileStatus'), closeProfileModal = $('closeProfileModal'), emojiBtn = $('emojiBtn'), emojiPanel = $('emojiPanel'), emojiTabs = $('emojiTabs'), emojiGrid = $('emojiGrid'), attachmentArea = $('attachmentArea'), mentionDropdown = $('mentionDropdown'), uploadOverlay = $('uploadOverlay'), closeUploadBtn = $('closeUploadBtn'), quoteJumpModal = $('quoteJumpModal'), closeQuoteJumpBtn = $('closeQuoteJumpBtn'), qjAuthor = $('qjAuthor'), qjTime = $('qjTime'), qjContent = $('qjContent'), qjCancel = $('qjCancel'), qjJump = $('qjJump'), qjStatus = $('qjStatus'), contextMenu = $('contextMenu'), ctxMention = $('ctxMention');
