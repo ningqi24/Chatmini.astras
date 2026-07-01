@@ -371,6 +371,102 @@
         .sidebar-badge.show{display:flex}
         .sidebar .nav-item.active .sidebar-badge{right:10px}
         @media(max-width:768px){.sidebar .nav-item span{display:none}.sidebar-badge{right:6px}}
+
+        /* === 会话列表(私聊/群组) === */
+        .sidebar-header{display:flex;align-items:center;justify-content:space-between;padding:0 8px 10px;border-bottom:1px solid var(--border-color);margin-bottom:12px}
+        .sidebar-header .sidebar-title{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+        .sidebar-add-btn{background:var(--bg-input);border:none;color:var(--text-secondary);width:24px;height:24px;border-radius:6px;cursor:pointer;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;transition:all .15s ease}
+        .sidebar-add-btn:hover{background:var(--accent);color:#fff;transform:scale(1.05)}
+        .sidebar-add-btn:active{transform:scale(.92)}
+        .conv-list{flex:1;overflow-y:auto;padding:0 4px;margin-bottom:8px}
+        .conv-list::-webkit-scrollbar{width:4px}
+        .conv-list::-webkit-scrollbar-track{background:transparent}
+        .conv-list::-webkit-scrollbar-thumb{background:var(--border-color);border-radius:2px}
+        .conv-list .conv-empty{color:var(--text-muted);font-size:12px;text-align:center;padding:20px 8px;line-height:1.5}
+        .conv-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;transition:background .15s ease;margin-bottom:2px;position:relative}
+        .conv-item:hover{background:var(--bg-hover)}
+        .conv-item.active{background:var(--bg-hover);box-shadow:inset 3px 0 0 var(--accent)}
+        .conv-avatar{width:38px;height:38px;border-radius:50%;background:var(--bg-input);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;overflow:hidden;position:relative}
+        .conv-avatar img{width:100%;height:100%;object-fit:cover}
+        .conv-avatar.direct-avatar{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;font-weight:600}
+        .conv-avatar.group-avatar{background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;font-weight:600}
+        .conv-info{flex:1;min-width:0}
+        .conv-name{font-size:14px;font-weight:500;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:4px}
+        .conv-name .type-tag{font-size:9px;padding:1px 5px;background:var(--bg-input);color:var(--text-muted);border-radius:3px;font-weight:500;letter-spacing:.3px}
+        .conv-preview{font-size:12px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
+        .conv-preview .me-prefix{color:var(--text-secondary);margin-right:2px}
+        .conv-badge{position:absolute;top:6px;right:8px;background:#ef4444;color:#fff;border-radius:10px;min-width:18px;height:18px;padding:0 5px;font-size:11px;font-weight:600;display:none;align-items:center;justify-content:center;line-height:1;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+        .conv-badge.show{display:flex}
+        .conv-item-time{font-size:10px;color:var(--text-muted);position:absolute;top:8px;right:10px;display:none}
+        .conv-item.has-unread .conv-preview{color:var(--text-primary);font-weight:500}
+        .conv-item.has-unread .conv-badge{display:flex}
+        .sidebar .nav .nav-sep{border:none;border-top:1px solid var(--border-color);margin:12px 8px 8px}
+        .sidebar .nav .nav-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;padding:0 12px 6px}
+
+        /* === 新建会话 modal === */
+        .conv-modal{display:none;position:absolute;inset:0;background:var(--bg-overlay);backdrop-filter:blur(8px);z-index:450;align-items:center;justify-content:center;padding:20px}
+        .conv-modal.active{display:flex}
+        .conv-modal-box{background:var(--bg-card);border-radius:var(--radius);padding:24px;width:100%;max-width:440px;border:1px solid var(--border-color);box-shadow:var(--shadow);max-height:85vh;display:flex;flex-direction:column;gap:16px}
+        .conv-modal-box h3{font-size:18px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+        .conv-modal-box h3 .close-conv{background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:22px;line-height:1;padding:0 4px;transition:color .2s}
+        .conv-modal-box h3 .close-conv:hover{color:var(--text-primary)}
+        .conv-tabs{display:flex;gap:4px;background:var(--bg-input);border-radius:8px;padding:3px}
+        .conv-tab{flex:1;padding:8px;border:none;background:transparent;color:var(--text-secondary);font-size:13px;font-weight:500;cursor:pointer;border-radius:6px;transition:all .15s ease}
+        .conv-tab.active{background:var(--bg-card);color:var(--text-primary);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+        .conv-panel{display:flex;flex-direction:column;gap:10px;min-height:0;flex:1}
+        .conv-panel.hidden{display:none}
+        .conv-panel input[type="text"]{padding:10px 14px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-input);color:var(--text-primary);font-size:14px;outline:none;font-family:inherit;transition:border-color .15s}
+        .conv-panel input[type="text"]:focus{border-color:var(--accent)}
+        .user-search-results,.group-search-results{flex:1;overflow-y:auto;max-height:240px;background:var(--bg-input);border-radius:8px;padding:4px}
+        .user-search-results::-webkit-scrollbar,.group-search-results::-webkit-scrollbar{width:4px}
+        .user-search-results::-webkit-scrollbar-thumb,.group-search-results::-webkit-scrollbar-thumb{background:var(--border-color);border-radius:2px}
+        .user-search-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer;transition:background .15s}
+        .user-search-item:hover{background:var(--bg-hover)}
+        .user-search-item img{width:32px;height:32px;border-radius:50%;object-fit:cover;background:var(--bg-card)}
+        .user-search-item .info{flex:1;min-width:0}
+        .user-search-item .info .name{font-size:14px;font-weight:500;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .user-search-item .info .email{font-size:11px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .user-search-item .add-btn{padding:4px 10px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;transition:background .15s}
+        .user-search-item .add-btn:hover{background:var(--accent-hover)}
+        .user-search-item .add-btn.added{background:var(--text-muted);cursor:default}
+        .user-search-empty{color:var(--text-muted);font-size:13px;text-align:center;padding:24px 8px;line-height:1.5}
+        .group-selected{display:flex;flex-wrap:wrap;gap:6px;padding:8px;background:var(--bg-input);border-radius:8px;min-height:42px;align-items:center}
+        .group-selected:empty::before{content:'已选 0 人';color:var(--text-muted);font-size:12px}
+        .group-chip{display:flex;align-items:center;gap:6px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:16px;padding:3px 8px 3px 4px;font-size:12px}
+        .group-chip img{width:18px;height:18px;border-radius:50%;object-fit:cover}
+        .group-chip .x{cursor:pointer;color:var(--text-muted);font-size:14px;line-height:1;padding:0 2px;transition:color .15s}
+        .group-chip .x:hover{color:#f87171}
+        .conv-modal-actions{display:flex;justify-content:flex-end;gap:8px;padding-top:8px;border-top:1px solid var(--border-color)}
+        .conv-modal-actions button{padding:8px 18px;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:all .15s ease}
+        .conv-modal-actions .btn-cancel{background:var(--bg-input);color:var(--text-secondary)}
+        .conv-modal-actions .btn-cancel:hover{background:var(--bg-hover)}
+        .conv-modal-actions .btn-confirm{background:var(--accent);color:#fff}
+        .conv-modal-actions .btn-confirm:hover{background:var(--accent-hover)}
+        .conv-modal-actions .btn-confirm:disabled{opacity:.5;cursor:not-allowed}
+        .conv-modal-msg{font-size:12px;text-align:center;min-height:16px;color:var(--text-muted)}
+
+        /* === 会话信息 modal(成员列表) === */
+        .conv-info-modal{display:none;position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:430;align-items:center;justify-content:center;padding:20px}
+        .conv-info-modal.active{display:flex}
+        .conv-info-box{background:var(--bg-card);border-radius:var(--radius);padding:24px;width:100%;max-width:380px;border:1px solid var(--border-color);box-shadow:var(--shadow);max-height:80vh;display:flex;flex-direction:column;gap:16px}
+        .conv-info-box h3{font-size:18px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+        .conv-info-box h3 .close-info{background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:22px;line-height:1;padding:0 4px}
+        .conv-info-box h3 .close-info:hover{color:var(--text-primary)}
+        .conv-info-meta{font-size:12px;color:var(--text-muted);padding:8px 12px;background:var(--bg-input);border-radius:8px;line-height:1.5}
+        .conv-members-list{flex:1;overflow-y:auto;max-height:300px;display:flex;flex-direction:column;gap:4px}
+        .conv-member-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg-input);border-radius:8px}
+        .conv-member-item img{width:32px;height:32px;border-radius:50%;object-fit:cover;background:var(--bg-card);cursor:pointer}
+        .conv-member-item .info{flex:1;min-width:0}
+        .conv-member-item .info .name{font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:6px}
+        .conv-member-item .info .name .role{font-size:9px;background:var(--accent);color:#fff;padding:1px 5px;border-radius:3px;font-weight:500}
+        .conv-member-item .info .email{font-size:11px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .conv-info-actions{display:flex;gap:8px;padding-top:8px;border-top:1px solid var(--border-color)}
+        .conv-info-actions button{flex:1;padding:8px;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s ease}
+        .conv-info-actions .btn-leave{background:#dc2626;color:#fff}
+        .conv-info-actions .btn-leave:hover{background:#b91c1c}
+        .conv-info-actions .btn-add-members{background:var(--accent);color:#fff}
+        .conv-info-actions .btn-add-members:hover{background:var(--accent-hover)}
+        @media(max-width:768px){.conv-modal-box,.conv-info-box{margin:0 12px;padding:20px}.conv-avatar{width:32px;height:32px}}
     </style>
 </head>
 <body>
@@ -391,16 +487,30 @@
     <div class="main-interface hidden" id="mainInterface">
         <aside class="sidebar">
             <div class="logo-area"><img src="assets/logo.svg" alt="Logo"/><span class="logo-text">MiniChat</span><span class="version-tag" id="sidebarVersion"></span></div>
+            <div class="sidebar-header">
+                <span class="sidebar-title">会话</span>
+                <button class="sidebar-add-btn" id="newConvBtn" title="新建会话">+</button>
+            </div>
+            <div class="conv-list" id="convList">
+                <div class="conv-empty">加载中...</div>
+            </div>
             <nav class="nav">
-                <div class="nav-item active"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>聊天</span><span class="sidebar-badge" id="sidebarUnreadBadge">0</span></div>
+                <hr class="nav-sep"/>
                 <div class="nav-item" id="settingsNav"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l-.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>设置</span></div>
             </nav>
             <div class="user-section"><div class="user-email" id="sidebarUserEmail">未登录</div></div>
         </aside>
         <main class="chat-main">
             <div class="chat-header">
-                <div class="chat-title">全局聊天<small># 所有成员</small></div>
+                <div class="chat-title" id="chatTitle">全局聊天<small id="chatSubtitle"># 所有成员</small></div>
                 <div class="chat-header-right">
+                    <button class="btn-icon" id="convInfoBtn" title="会话信息" style="display:none">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="16" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12.01" y2="8"/>
+                        </svg>
+                    </button>
                     <span id="onlineStatus">● 在线</span>
                     <button class="btn-icon" id="searchBtn" title="搜索消息（Ctrl+F）">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -558,6 +668,49 @@
     <div class="context-menu" id="contextMenu">
         <div class="menu-item" id="ctxMention"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>@他</div>
     </div>
+
+    <!-- 新建会话 modal -->
+    <div class="conv-modal" id="newConvOverlay">
+        <div class="conv-modal-box">
+            <h3>新建会话<button class="close-conv" id="closeNewConv">×</button></h3>
+            <div class="conv-tabs">
+                <button class="conv-tab active" data-tab="direct">私聊</button>
+                <button class="conv-tab" data-tab="group">群组</button>
+            </div>
+            <div class="conv-panel" data-panel="direct">
+                <input type="text" id="searchUserInput" placeholder="搜索用户邮箱或昵称..." autocomplete="off"/>
+                <div class="user-search-results" id="userSearchResults">
+                    <div class="user-search-empty">输入关键字查找用户</div>
+                </div>
+            </div>
+            <div class="conv-panel hidden" data-panel="group">
+                <input type="text" id="groupNameInput" placeholder="群组名称" maxlength="50"/>
+                <input type="text" id="groupSearchInput" placeholder="搜索用户添加..." autocomplete="off"/>
+                <div class="group-selected" id="groupSelected"></div>
+                <div class="group-search-results" id="groupSearchResults">
+                    <div class="user-search-empty">输入关键字查找用户</div>
+                </div>
+            </div>
+            <div class="conv-modal-msg" id="newConvMsg"></div>
+            <div class="conv-modal-actions">
+                <button class="btn-cancel" id="cancelNewConv">取消</button>
+                <button class="btn-confirm" id="confirmNewConv">创建</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 会话信息 modal -->
+    <div class="conv-info-modal" id="convInfoOverlay">
+        <div class="conv-info-box">
+            <h3><span id="convInfoTitle">会话信息</span><button class="close-info" id="closeConvInfo">×</button></h3>
+            <div class="conv-info-meta" id="convInfoMeta"></div>
+            <div class="conv-members-list" id="convMembersList"></div>
+            <div class="conv-info-actions">
+                <button class="btn-add-members" id="addMembersBtn" style="display:none">邀请成员</button>
+                <button class="btn-leave" id="leaveConvBtn" style="display:none">退出群组</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -644,9 +797,23 @@ if (!supabase || !supabase.auth) window.supabase = supabase.createClient(SUPABAS
 var $ = function(id) { return document.getElementById(id); };
 var loginOverlay = $('loginOverlay'), mainInterface = $('mainInterface'), authEmail = $('authEmail'), authPassword = $('authPassword'), authMessage = $('authMessage'), authTitle = $('authTitle'), authSub = $('authSub'), btnLogin = $('btnLogin'), messageList = $('messageList'), chatInput = $('chatInput'), sidebarUserEmail = $('sidebarUserEmail'), btnSend = $('btnSend'), fileInput = $('fileInput'), attachBtn = $('attachBtn'), settingsOverlay = $('settingsOverlay'), themeToggle = $('themeToggle'), settingsLogout = $('settingsLogout'), closeSettingsEl = $('closeSettings'), settingsNav = $('settingsNav'), displayNameInput = $('displayNameInput'), saveDisplayNameBtn = $('saveDisplayName'), displayNameMessage = $('displayNameMessage'), onlineStatus = $('onlineStatus'), onlineBadge = $('onlineBadge'), onlineModal = $('onlineModal'), onlineUserList = $('onlineUserList'), modalOnlineCount = $('modalOnlineCount'), onlineUsersBtn = $('onlineUsersBtn'), closeOnlineModal = $('closeOnlineModal'), avatarPreview = $('avatarPreview'), avatarUploadBtn = $('avatarUploadBtn'), avatarFileInput = $('avatarFileInput'), avatarUploadStatus = $('avatarUploadStatus'), profileModal = $('userProfileModal'), profileAvatar = $('profileAvatar'), profileDisplayName = $('profileDisplayName'), profileEmail = $('profileEmail'), profileStatus = $('profileStatus'), closeProfileModal = $('closeProfileModal'), emojiBtn = $('emojiBtn'), emojiPanel = $('emojiPanel'), emojiTabs = $('emojiTabs'), emojiGrid = $('emojiGrid'), attachmentArea = $('attachmentArea'), mentionDropdown = $('mentionDropdown'), uploadOverlay = $('uploadOverlay'), closeUploadBtn = $('closeUploadBtn'), quoteJumpModal = $('quoteJumpModal'), closeQuoteJumpBtn = $('closeQuoteJumpBtn'), qjAuthor = $('qjAuthor'), qjTime = $('qjTime'), qjContent = $('qjContent'), qjCancel = $('qjCancel'), qjJump = $('qjJump'), qjStatus = $('qjStatus'), contextMenu = $('contextMenu'), ctxMention = $('ctxMention');
 var searchBar = $('searchBar'), searchInput = $('searchInput'), searchStatus = $('searchStatus'), searchBtn = $('searchBtn'), searchPrev = $('searchPrev'), searchNext = $('searchNext'), searchClose = $('searchClose');
+var convListEl = $('convList'), newConvBtn = $('newConvBtn'), newConvOverlay = $('newConvOverlay'), closeNewConv = $('closeNewConv'), cancelNewConv = $('cancelNewConv'), confirmNewConv = $('confirmNewConv'), newConvMsg = $('newConvMsg'), searchUserInput = $('searchUserInput'), userSearchResults = $('userSearchResults'), groupNameInput = $('groupNameInput'), groupSearchInput = $('groupSearchInput'), groupSelected = $('groupSelected'), groupSearchResults = $('groupSearchResults');
+var convInfoOverlay = $('convInfoOverlay'), closeConvInfo = $('closeConvInfo'), convInfoTitle = $('convInfoTitle'), convInfoMeta = $('convInfoMeta'), convMembersList = $('convMembersList'), addMembersBtn = $('addMembersBtn'), leaveConvBtn = $('leaveConvBtn'), convInfoBtn = $('convInfoBtn'), chatTitleEl = $('chatTitle'), chatSubtitleEl = $('chatSubtitle');
 var currentEmail = '', currentUserId = '', currentDisplayName = '', currentAvatarUrl = '', isLoginMode = true, currentUserMap = {}, attachments = [], onlineUsers = {}, onlineCount = 0, isSending = false, lastSendTime = 0;
 var MIN_SEND_INTERVAL = 500, PAGE_SIZE = 20;
 var isLoadingMore = false, hasMoreMessages = true, oldestTimestamp = null, unreadCount = 0, isUploadingFile = false;
+
+// === 会话状态 ===
+var currentConversationId = 1;        // 当前打开的会话
+var currentConversation = null;        // 当前会话的元数据(type/name/...)
+var userConversations = [];            // 缓存我的会话列表
+var conversationChannels = {};         // convId -> RealtimeChannel
+var presenceChannel = null;            // 全局 presence/typing channel(不随会话切换)
+var unreadByConv = {};                 // convId -> 未读数
+var convMembersCache = {};             // convId -> [{user_id,email,display_name,avatar_url,role}]
+var switchingConv = false;             // 防止重入
+var newConvTab = 'direct';             // 新建会话当前 tab
+var groupDraftUsers = [];              // 群组草稿已选用户
 
 // === 消息列表与新消息按钮事件 ===
 newMessagesBtn.addEventListener('click', function() {
@@ -1298,11 +1465,19 @@ function enterChat() {
     mainInterface.classList.remove('hidden');
     hasMoreMessages = true; oldestTimestamp = null; isLoadingMore = false; unreadCount = 0;
     document.title = 'MiniChat';
-    loadDisplayName().then(() => refreshMessages());
+    loadDisplayName().then(function() {
+        // 先起 presence channel(全局在线状态/typing/mention 通知)
+        setupPresenceChannel();
+        // 拉取会话列表 → 默认进全局会话
+        loadUserConversations().then(function() {
+            var def = userConversations.find(c => c.conversation_id === 1) || userConversations[0];
+            if (def) switchConversation(def.conversation_id);
+            else { currentConversationId = 1; refreshMessages(); subscribeConversation(1); }
+        });
+    });
     localStorage.setItem('minichat_user', JSON.stringify({ email: currentEmail, id: currentUserId }));
     loadTheme();
     if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
-    subscribeMessages();
     setupGlobalEventListeners();
     btnSend.disabled = false;
     chatInput.addEventListener('input', autoResizeTextarea);
@@ -1317,11 +1492,19 @@ function enterChat() {
     });
 }
 async function handleLogout() {
-    if (window.chatChannel) { try { await window.chatChannel.untrack(); } catch(e){} window.chatChannel.unsubscribe(); window.chatChannel = null; }
+    // 清理所有 realtime 资源
+    if (presenceChannel) { try { await presenceChannel.untrack(); } catch(e){} presenceChannel.unsubscribe(); presenceChannel = null; }
+    Object.keys(conversationChannels).forEach(function(id) {
+        try { conversationChannels[id].unsubscribe(); } catch(e){}
+    });
+    conversationChannels = {};
+    window.chatChannel = null;
     await supabase.auth.signOut();
     currentEmail = ''; currentUserId = ''; currentDisplayName = '';
+    currentConversationId = 1; currentConversation = null; userConversations = []; unreadByConv = {}; convMembersCache = {};
     mainInterface.classList.add('hidden'); loginOverlay.classList.remove('hidden');
     authMessage.textContent = ''; messageList.innerHTML = ''; sidebarUserEmail.textContent = '未登录';
+    if (convListEl) convListEl.innerHTML = '<div class="conv-empty">加载中...</div>';
     localStorage.removeItem('minichat_user');
     closeSettingsFunc();
     onlineUsers = {}; onlineCount = 0; updateOnlineUI();
@@ -1330,11 +1513,13 @@ async function handleLogout() {
 function closeSettingsFunc() { settingsOverlay.classList.remove('active'); }
 
 // === 消息加载 ===
-async function loadHistory(append) {
+async function loadHistory(append) { return loadConversationHistory(currentConversationId, append); }
+async function loadConversationHistory(convId, append) {
+    if (!convId) return;
     if (isLoadingMore || !hasMoreMessages) return;
     isLoadingMore = true;
     try {
-        var q = supabase.from('messages').select('*').order('created_at',{ascending:false}).limit(PAGE_SIZE);
+        var q = supabase.from('messages').select('*').eq('conversation_id', convId).order('created_at',{ascending:false}).limit(PAGE_SIZE);
         if (oldestTimestamp) q = q.lt('created_at', oldestTimestamp);
         var res = await q;
         if (res.error) throw res.error;
@@ -1787,7 +1972,7 @@ async function sendMessageContent(content) {
         var tempId = 'temp-'+Date.now();
         addMessageToBottom({ id: tempId, content: fc, sender_name: senderName, sender_email: currentEmail, isMe: true, time: formatTimeShort(new Date().toISOString()), created_at: new Date().toISOString() });
         chatInput.value = ''; attachments = []; renderAttachments(); autoResizeTextarea();
-        var res = await supabase.from('messages').insert({ content: fc, sender_name: senderName, sender_email: currentEmail }).select().single();
+        var res = await supabase.from('messages').insert({ content: fc, sender_name: senderName, sender_email: currentEmail, conversation_id: currentConversationId }).select().single();
         if (res.error) throw res.error;
         var data = res.data;
         if (data) { var te = messageList.querySelector('[data-message-id="'+tempId+'"]'); if (te) te.replaceWith(createMessageElement({ id: data.id, content: data.content, sender_name: data.sender_name || senderName, sender_email: data.sender_email || currentEmail, isMe: true, time: formatTimeShort(data.created_at), created_at: data.created_at })); }
@@ -1852,11 +2037,11 @@ document.addEventListener('click', e => { if (mentionActive && !mentionDropdown.
 // === 输入状态 ===
 var typingStopId, lastTypingBT = 0;
 function sendTypingEvent() {
-    if (!window.chatChannel || !currentUserId) return;
+    if (!presenceChannel || !currentUserId) return;
     var n = Date.now();
     if (n - lastTypingBT < 1500) return;
     lastTypingBT = n;
-    window.chatChannel.send({ type:'broadcast', event:'typing', payload:{ user_id: currentUserId, display_name: currentDisplayName || currentEmail.split('@')[0] } });
+    try { presenceChannel.send({ type:'broadcast', event:'typing', payload:{ user_id: currentUserId, display_name: currentDisplayName || currentEmail.split('@')[0] } }); } catch(e) {}
 }
 function showTypingIndicator(dn) {
     var i = document.getElementById('typingIndicator'), t = document.getElementById('typingText');
@@ -1868,38 +2053,488 @@ function showTypingIndicator(dn) {
 }
 
 // === 实时频道 ===
-function subscribeMessages() {
-    if (window.chatChannel) { window.chatChannel.unsubscribe(); window.chatChannel = null; }
-    var ch = supabase.channel('chat-room', { config: { presence: { key: currentUserId } } });
+// 全局 presence + typing + @通知 channel（不随会话切换）
+function setupPresenceChannel() {
+    if (presenceChannel) { try { presenceChannel.unsubscribe(); } catch(e){} presenceChannel = null; }
+    var ch = supabase.channel('presence-room', { config: { presence: { key: currentUserId } } });
     ch.on('presence', { event:'sync' }, () => {
         var s = ch.presenceState(), us = {}, c = 0;
         for (var k in s) { var p = s[k][0]; if (!p) continue; var em = p.email || '';
             us[k] = { user_id: k, display_name: p.display_name || '匿名', email: em, avatar_url: p.avatar_url || getDefaultAvatar(em) };
-            if (p.avatar_url && (!currentUserMap[em] || currentUserMap[em].avatar_url !== p.avatar_url)) { currentUserMap[em] = { ...currentUserMap[em], avatar_url: p.avatar_url }; refreshAllAvatars(em, p.avatar_url); }
-            if (p.display_name) currentUserMap[em] = { ...currentUserMap[em], display_name: p.display_name };
+            if (p.avatar_url && (!currentUserMap[em] || currentUserMap[em].avatar_url !== p.avatar_url)) { currentUserMap[em] = Object.assign({}, currentUserMap[em], { avatar_url: p.avatar_url }); refreshAllAvatars(em, p.avatar_url); }
+            if (p.display_name) currentUserMap[em] = Object.assign({}, currentUserMap[em], { display_name: p.display_name });
             c++; }
         onlineUsers = us; onlineCount = c; updateOnlineUI();
     });
     ch.on('broadcast', { event:'typing' }, data => { if (data.payload.user_id !== currentUserId) showTypingIndicator(data.payload.display_name); });
     ch.on('broadcast', { event:'mention' }, data => {
-        if (data.payload.users.includes(currentUserId)) {
+        if (data.payload.users && data.payload.users.indexOf(currentUserId) !== -1) {
             if ('Notification' in window && Notification.permission === 'granted') new Notification('有人@了你', { body: data.payload.from + ' 提到了你', icon: 'assets/logo.svg' });
             else { setAuthMessage(data.payload.from + ' 提到了你','success'); setTimeout(() => setAuthMessage(''), 5000); }
         }
     });
-    ch.on('postgres_changes', { event:'INSERT', schema:'public', table:'messages' }, payload => {
-        var m = payload.new; if (!m || m.sender_email === currentEmail) return;
-        addMessageToBottom({ id: m.id, content: m.content, sender_name: m.sender_name || '匿名', sender_email: m.sender_email, isMe: false, time: formatTimeShort(m.created_at), created_at: m.created_at });
+    // 也监听会话列表变更（会让人实时出现在侧边栏）
+    ch.on('postgres_changes', { event:'*', schema:'public', table:'conversation_participants', filter: 'user_id=eq.' + currentUserId }, function() {
+        loadUserConversations();
     });
-    ch.on('postgres_changes', { event:'UPDATE', schema:'public', table:'messages' }, payload => {
+    // 跨会话消息:RLS 会只发有权看的,但本表不带 filter
+    // 作用:为非当前会话增未读 + 更新侧边栏预览
+    ch.on('postgres_changes', { event:'INSERT', schema:'public', table:'messages' }, function(payload) {
+        var m = payload.new; if (!m) return;
+        // 自己发的不计
+        if (m.sender_email === currentEmail) return;
+        // 如果是当前会话,具体渲染逻辑交给各会话的 channel
+        if (m.conversation_id === currentConversationId) return;
+        unreadByConv[m.conversation_id] = (unreadByConv[m.conversation_id] || 0) + 1;
+        updateConvPreview(m.conversation_id, m);
+    });
+    ch.subscribe(async status => {
+        if (status === 'SUBSCRIBED') {
+            await ch.track({ user_id: currentUserId, email: currentEmail, display_name: currentDisplayName || currentEmail.split('@')[0], avatar_url: currentAvatarUrl, online_at: new Date().toISOString() });
+        }
+    });
+    presenceChannel = ch;
+    // 保留一个 window 别名,供老代码路径使用
+    window.chatChannel = ch;
+}
+
+// 订阅某个会话的消息流
+function subscribeConversation(convId) {
+    if (!convId) return;
+    // 如果已订阅同会话,跳过
+    if (conversationChannels[convId]) return;
+    var ch = supabase.channel('conv:' + convId, {
+        config: { presence: { key: currentUserId } }
+    });
+    ch.on('postgres_changes', { event:'INSERT', schema:'public', table:'messages', filter: 'conversation_id=eq.' + convId }, function(payload) {
+        var m = payload.new; if (!m) return;
+        // 是当前会话才插入页面
+        if (m.conversation_id === currentConversationId) {
+            if (m.sender_email === currentEmail) return; // 自己的已由本地添加
+            addMessageToBottom({ id: m.id, content: m.content, sender_name: m.sender_name || '匿名', sender_email: m.sender_email, isMe: false, time: formatTimeShort(m.created_at), created_at: m.created_at });
+        } else {
+            // 其他会话：增未读
+            unreadByConv[m.conversation_id] = (unreadByConv[m.conversation_id] || 0) + 1;
+            renderConversationList();
+        }
+        // 顶多该会话的预览在侧边栏上也是要更新的
+        updateConvPreview(convId, m);
+    });
+    ch.on('postgres_changes', { event:'UPDATE', schema:'public', table:'messages', filter: 'conversation_id=eq.' + convId }, function(payload) {
         var u = payload.new;
-        document.querySelectorAll('.message[data-message-id="'+u.id+'"]').forEach(el => { el.replaceWith(createMessageElement({ id: u.id, content: u.content, sender_name: u.sender_name, sender_email: u.sender_email, isMe: u.sender_email === currentEmail, time: formatTimeShort(u.created_at), created_at: u.created_at })); });
+        document.querySelectorAll('.message[data-message-id="'+u.id+'"]').forEach(function(el) {
+            el.replaceWith(createMessageElement({ id: u.id, content: u.content, sender_name: u.sender_name, sender_email: u.sender_email, isMe: u.sender_email === currentEmail, time: formatTimeShort(u.created_at), created_at: u.created_at }));
+        });
     });
-    ch.on('postgres_changes', { event:'DELETE', schema:'public', table:'messages' }, payload => {
+    ch.on('postgres_changes', { event:'DELETE', schema:'public', table:'messages', filter: 'conversation_id=eq.' + convId }, function(payload) {
         var el = messageList.querySelector('[data-message-id="'+payload.old.id+'"]'); if (el) el.remove();
     });
-    ch.subscribe(async status => { if (status === 'SUBSCRIBED') await ch.track({ user_id: currentUserId, email: currentEmail, display_name: currentDisplayName || currentEmail.split('@')[0], avatar_url: currentAvatarUrl, online_at: new Date().toISOString() }); });
-    window.chatChannel = ch;
+    ch.subscribe(function(status) {
+        if (status !== 'SUBSCRIBED' && status !== 'CHANNEL_ERROR') return;
+    });
+    conversationChannels[convId] = ch;
+}
+function unsubscribeConversation(convId) {
+    var ch = conversationChannels[convId];
+    if (!ch) return;
+    try { ch.unsubscribe(); } catch(e) {}
+    delete conversationChannels[convId];
+}
+// 兼容原名字
+function subscribeMessages() { setupPresenceChannel(); switchConversation(currentConversationId); }
+
+// === 会话管理 ===
+async function loadUserConversations() {
+    if (!currentUserId) return [];
+    try {
+        var res = await supabase.rpc('get_user_conversations', { user_uuid: currentUserId });
+        if (res.error) throw res.error;
+        userConversations = res.data || [];
+        // 合并本地未读
+        userConversations.forEach(function(c) {
+            if (unreadByConv[c.conversation_id] != null) {
+                c.unread_count = (c.unread_count || 0) + unreadByConv[c.conversation_id];
+            }
+        });
+        renderConversationList();
+        return userConversations;
+    } catch(e) {
+        console.error('加载会话列表失败', e);
+        if (convListEl) convListEl.innerHTML = '<div class="conv-empty">加载失败，刷新重试</div>';
+        return [];
+    }
+}
+
+function renderConversationList() {
+    if (!convListEl) return;
+    convListEl.innerHTML = '';
+    if (!userConversations.length) {
+        convListEl.innerHTML = '<div class="conv-empty">还没有会话<br>点击 + 发起</div>';
+        return;
+    }
+    userConversations.forEach(function(conv) {
+        var div = document.createElement('div');
+        div.className = 'conv-item';
+        if (conv.conversation_id === currentConversationId) div.classList.add('active');
+        if (conv.unread_count > 0) div.classList.add('has-unread');
+        div.dataset.conversationId = conv.conversation_id;
+
+        // 头像
+        var av = document.createElement('div');
+        av.className = 'conv-avatar ' + (conv.type === 'direct' ? 'direct-avatar' : 'group-avatar');
+        if (conv.type === 'direct') {
+            // 私聊：尽量显示对方头像
+            var other = (convMembersCache[conv.conversation_id] || []).find(function(m){ return m.user_id !== currentUserId; });
+            if (other && other.avatar_url) {
+                var img = document.createElement('img'); img.src = bustCache(other.avatar_url); img.onerror = function(){ this.style.display='none'; };
+                av.appendChild(img);
+            } else {
+                var initial = (other && (other.display_name || other.email)) || conv.name || '?';
+                av.textContent = (initial[0] || '?').toUpperCase();
+            }
+        } else {
+            av.textContent = '#';
+        }
+        div.appendChild(av);
+
+        var info = document.createElement('div');
+        info.className = 'conv-info';
+        var name = document.createElement('div');
+        name.className = 'conv-name';
+        var label = conv.name || (conv.type === 'direct' ? '私聊' : '群聊');
+        name.textContent = label;
+        info.appendChild(name);
+        var preview = document.createElement('div');
+        preview.className = 'conv-preview';
+        var previewText = (conv.last_message_content || '').replace(/!\[image\]\([^)]*\)/g,'[图片]').replace(/\[audio\]\([^)]*\)/g,'[音频]').replace(/\[quote:[^\]]*\]/g,'').trim();
+        if (previewText) {
+            if (conv.last_message_sender_name && conv.last_message_sender_name === currentDisplayName) {
+                preview.innerHTML = '<span class="me-prefix">你:</span>' + esc(previewText);
+            } else {
+                preview.textContent = previewText;
+            }
+        } else {
+            preview.textContent = conv.type === 'direct' ? '点击发起对话' : '群组创建于 ' + formatTimeShort(conv.last_message_created_at || new Date().toISOString());
+        }
+        info.appendChild(preview);
+        div.appendChild(info);
+
+        if (conv.unread_count > 0) {
+            var b = document.createElement('span');
+            b.className = 'conv-badge';
+            b.textContent = conv.unread_count > 99 ? '99+' : conv.unread_count;
+            div.appendChild(b);
+        }
+
+        div.addEventListener('click', function() { switchConversation(conv.conversation_id); });
+        convListEl.appendChild(div);
+    });
+}
+
+async function switchConversation(convId) {
+    if (!convId) return;
+    if (switchingConv) return;
+    if (convId === currentConversationId) {
+        // 仅刷新
+        return;
+    }
+    switchingConv = true;
+    try {
+        // 更新会话数据
+        var conv = userConversations.find(function(c) { return c.conversation_id === convId; });
+        if (!conv) {
+            // 还未加载,先拉取
+            await loadUserConversations();
+            conv = userConversations.find(function(c) { return c.conversation_id === convId; });
+        }
+        currentConversationId = convId;
+        currentConversation = conv || null;
+        // 重置未读
+        delete unreadByConv[convId];
+        if (conv) conv.unread_count = 0;
+        // 更新标题
+        if (chatTitleEl) {
+            chatTitleEl.firstChild && (chatTitleEl.firstChild.nodeValue = (conv && conv.name) || (conv && conv.type === 'direct' ? '私聊' : '群聊') || '会话');
+            if (!chatTitleEl.firstChild) chatTitleEl.textContent = (conv && conv.name) || '会话';
+            var sub = '# ' + (conv && conv.type === 'direct' ? '私聊' : '群聊') + ' · ID ' + convId;
+            if (chatSubtitleEl) chatSubtitleEl.textContent = sub;
+        }
+        if (convInfoBtn) convInfoBtn.style.display = (conv && conv.type === 'group') ? 'flex' : (conv && conv.type === 'direct' ? 'flex' : 'none');
+        // 清空消息 + 重置状态
+        messageList.innerHTML = '';
+        lastTimeDivider = 0;
+        hasMoreMessages = true;
+        oldestTimestamp = null;
+        isLoadingMore = false;
+        // 侧边栏高亮
+        renderConversationList();
+        // 取消所有非当前会话的 channel,节省资源
+        Object.keys(conversationChannels).forEach(function(id) {
+            if (Number(id) !== Number(convId)) unsubscribeConversation(id);
+        });
+        // 订阅
+        subscribeConversation(convId);
+        // 加载历史
+        await loadConversationHistory(convId, false);
+        // 更新 last_read_at
+        try {
+            await supabase.from('conversation_participants').update({ last_read_at: new Date().toISOString() }).eq('conversation_id', convId).eq('user_id', currentUserId);
+        } catch(e) { /* 非关键 */ }
+        // 预热成员缓存（为了在侧边栏显示头像）
+        loadConvMembers(convId).then(function(){ renderConversationList(); });
+    } finally {
+        switchingConv = false;
+    }
+}
+
+function updateConvPreview(convId, m) {
+    var conv = userConversations.find(function(c){ return c.conversation_id === convId; });
+    if (conv) {
+        conv.last_message_content = m.content;
+        conv.last_message_sender_name = m.sender_name;
+        conv.last_message_created_at = m.created_at;
+        // 重新排序：最新在前
+        userConversations.sort(function(a,b){
+            var ta = new Date(a.last_message_created_at || a.conversation_id).getTime();
+            var tb = new Date(b.last_message_created_at || b.conversation_id).getTime();
+            return tb - ta;
+        });
+        renderConversationList();
+    } else {
+        loadUserConversations();
+    }
+}
+
+// === 新建会话 ===
+function openNewConvDialog() {
+    newConvTab = 'direct';
+    document.querySelectorAll('.conv-tab').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === newConvTab); });
+    document.querySelectorAll('.conv-panel').forEach(function(p){ p.classList.toggle('hidden', p.dataset.panel !== newConvTab); });
+    newConvMsg.textContent = '';
+    searchUserInput.value = '';
+    userSearchResults.innerHTML = '<div class="user-search-empty">输入关键字查找用户</div>';
+    groupNameInput.value = '';
+    groupSearchInput.value = '';
+    groupDraftUsers = [];
+    renderGroupSelected();
+    groupSearchResults.innerHTML = '<div class="user-search-empty">输入关键字查找用户</div>';
+    confirmNewConv.textContent = '创建';
+    newConvOverlay.classList.add('active');
+    setTimeout(function(){ searchUserInput.focus(); }, 50);
+}
+function closeNewConvDialog() { newConvOverlay.classList.remove('active'); }
+
+var userSearchTimer = null;
+function bindUserSearch(inputEl, resultsEl, onPick) {
+    inputEl.addEventListener('input', function() {
+        var v = inputEl.value.trim();
+        clearTimeout(userSearchTimer);
+        if (!v) { resultsEl.innerHTML = '<div class="user-search-empty">输入关键字查找用户</div>'; return; }
+        resultsEl.innerHTML = '<div class="user-search-empty">搜索中...</div>';
+        userSearchTimer = setTimeout(function() { doUserSearch(v, resultsEl, onPick); }, 250);
+    });
+}
+async function doUserSearch(term, resultsEl, onPick) {
+    try {
+        var q = supabase.from('profiles').select('id,email,display_name,avatar_url').neq('id', currentUserId).or('email.ilike.%'+term+'%,display_name.ilike.%'+term+'%').limit(20);
+        var res = await q;
+        if (res.error) throw res.error;
+        var list = res.data || [];
+        resultsEl.innerHTML = '';
+        if (!list.length) { resultsEl.innerHTML = '<div class="user-search-empty">没找到匹配的用户</div>'; return; }
+        list.forEach(function(u) {
+            var it = document.createElement('div'); it.className = 'user-search-item';
+            var img = document.createElement('img'); img.src = bustCache(u.avatar_url || getDefaultAvatar(u.email)); img.onerror = function(){ this.src = getDefaultAvatar(u.email); };
+            it.appendChild(img);
+            var inf = document.createElement('div'); inf.className = 'info';
+            var nm = document.createElement('div'); nm.className = 'name'; nm.textContent = u.display_name || u.email.split('@')[0];
+            var em = document.createElement('div'); em.className = 'email'; em.textContent = u.email;
+            inf.appendChild(nm); inf.appendChild(em);
+            it.appendChild(inf);
+            var btn = document.createElement('button'); btn.className = 'add-btn'; btn.textContent = '+';
+            btn.addEventListener('click', function(e){ e.stopPropagation(); onPick(u, btn); });
+            it.appendChild(btn);
+            it.addEventListener('click', function(){ onPick(u, btn); });
+            resultsEl.appendChild(it);
+        });
+    } catch(e) {
+        console.error('搜索用户失败', e);
+        resultsEl.innerHTML = '<div class="user-search-empty">搜索失败</div>';
+    }
+}
+function renderGroupSelected() {
+    groupSelected.innerHTML = '';
+    groupDraftUsers.forEach(function(u, idx) {
+        var c = document.createElement('span'); c.className = 'group-chip';
+        var img = document.createElement('img'); img.src = bustCache(u.avatar_url || getDefaultAvatar(u.email));
+        c.appendChild(img);
+        var t = document.createElement('span'); t.textContent = u.display_name || u.email; c.appendChild(t);
+        var x = document.createElement('span'); x.className = 'x'; x.textContent = '×';
+        x.addEventListener('click', function() {
+            groupDraftUsers.splice(idx, 1);
+            renderGroupSelected();
+        });
+        c.appendChild(x);
+        groupSelected.appendChild(c);
+    });
+    confirmNewConv.disabled = (groupDraftUsers.length < 1 || !groupNameInput.value.trim());
+}
+groupNameInput && groupNameInput.addEventListener && groupNameInput.addEventListener('input', function() {
+    confirmNewConv.disabled = (groupDraftUsers.length < 1 || !groupNameInput.value.trim());
+});
+
+bindUserSearch(searchUserInput, userSearchResults, function(u, btn) {
+    // 私聊：直接创建
+    btn.disabled = true; btn.textContent = '…';
+    createDirectConversation(u.id).then(function(convId) {
+        closeNewConvDialog();
+        loadUserConversations().then(function() { switchConversation(convId); });
+    }).catch(function(err) {
+        console.error(err);
+        newConvMsg.textContent = '创建失败：' + (err.message || '未知错误');
+        newConvMsg.style.color = '#f87171';
+        btn.disabled = false; btn.textContent = '+';
+    });
+});
+bindUserSearch(groupSearchInput, groupSearchResults, function(u, btn) {
+    if (groupDraftUsers.find(function(x){ return x.id === u.id; })) return;
+    groupDraftUsers.push(u);
+    renderGroupSelected();
+    btn.classList.add('added'); btn.textContent = '✓';
+});
+
+confirmNewConv.addEventListener('click', function() {
+    confirmNewConv.disabled = true;
+    if (newConvTab === 'direct') {
+        newConvMsg.textContent = '请从上方搜索结果中选择一个用户';
+        newConvMsg.style.color = '#f87171';
+        confirmNewConv.disabled = false;
+        return;
+    } else {
+        var name = groupNameInput.value.trim();
+        if (!name) { newConvMsg.textContent = '请输入群组名称'; newConvMsg.style.color = '#f87171'; confirmNewConv.disabled = false; return; }
+        if (groupDraftUsers.length < 1) { newConvMsg.textContent = '请至少添加 1 位成员'; newConvMsg.style.color = '#f87171'; confirmNewConv.disabled = false; return; }
+        newConvMsg.textContent = '创建中...'; newConvMsg.style.color = 'var(--text-muted)';
+        createGroupConversation(name, groupDraftUsers).then(function(convId) {
+            closeNewConvDialog();
+            loadUserConversations().then(function() { switchConversation(convId); });
+        }).catch(function(err) {
+            console.error(err);
+            newConvMsg.textContent = '创建失败：' + (err.message || '未知错误');
+            newConvMsg.style.color = '#f87171';
+            confirmNewConv.disabled = false;
+        });
+    }
+});
+
+async function createDirectConversation(otherUserId) {
+    // 复用 RPC 查找/创建
+    var res = await supabase.rpc('find_or_create_direct_conversation', { user_a: currentUserId, user_b: otherUserId });
+    if (res.error) throw res.error;
+    return res.data;
+}
+async function createGroupConversation(name, users) {
+    // 手动创建（业务逻辑简单，不走 RPC 以便控制参与人列表）
+    var ins = await supabase.from('conversations').insert({ type: 'group', name: name, created_by: currentUserId }).select().single();
+    if (ins.error) throw ins.error;
+    var convId = ins.data.id;
+    var rows = [{ conversation_id: convId, user_id: currentUserId, role: 'owner' }];
+    users.forEach(function(u) { rows.push({ conversation_id: convId, user_id: u.id, role: 'member' }); });
+    var e2 = await supabase.from('conversation_participants').insert(rows);
+    if (e2.error) throw e2.error;
+    return convId;
+}
+
+// === 会话信息 ===
+async function loadConvMembers(convId) {
+    if (!convId) return [];
+    try {
+        var res = await supabase.from('conversation_participants').select('user_id, role, joined_at, profiles:profiles!conversation_participants_user_id_fkey(email,display_name,avatar_url)').eq('conversation_id', convId);
+        if (res.error) throw res.error;
+        var list = (res.data || []).map(function(r) {
+            var p = r.profiles || {};
+            return { user_id: r.user_id, role: r.role, joined_at: r.joined_at, email: p.email, display_name: p.display_name, avatar_url: p.avatar_url };
+        });
+        // profiles FK 名字可能不准确，退一步手动拉取
+        if (list.length && !list[0].email) {
+            var ids = list.map(function(x){ return x.user_id; });
+            var pr = await supabase.from('profiles').select('id,email,display_name,avatar_url').in('id', ids);
+            if (!pr.error) {
+                var byId = {}; (pr.data || []).forEach(function(p){ byId[p.id] = p; });
+                list.forEach(function(x) { var p = byId[x.user_id] || {}; x.email = x.email || p.email; x.display_name = x.display_name || p.display_name; x.avatar_url = x.avatar_url || p.avatar_url; });
+            }
+        }
+        convMembersCache[convId] = list;
+        // 同步到 currentUserMap
+        list.forEach(function(x) { if (x.email) currentUserMap[x.email] = Object.assign({}, currentUserMap[x.email] || {}, { display_name: x.display_name, avatar_url: x.avatar_url }); });
+        return list;
+    } catch(e) {
+        console.error('加载成员失败', e);
+        return [];
+    }
+}
+async function openConvInfoDialog() {
+    if (!currentConversation) return;
+    convInfoTitle.textContent = (currentConversation.name || '会话信息') + ' (#' + currentConversationId + ')';
+    convInfoMeta.textContent = (currentConversation.type === 'group' ? '群组' : '私聊') + ' · 创建于 ' + formatTime(currentConversation.last_message_created_at || new Date().toISOString());
+    convMembersList.innerHTML = '<div class="user-search-empty">加载中...</div>';
+    addMembersBtn.style.display = (currentConversation.type === 'group') ? 'block' : 'none';
+    leaveConvBtn.style.display = (currentConversation.type === 'group' && currentConversationId !== 1) ? 'block' : 'none';
+    convInfoOverlay.classList.add('active');
+    var list = await loadConvMembers(currentConversationId);
+    convMembersList.innerHTML = '';
+    if (!list.length) { convMembersList.innerHTML = '<div class="user-search-empty">成员加载失败</div>'; return; }
+    list.forEach(function(m) {
+        var it = document.createElement('div'); it.className = 'conv-member-item';
+        var img = document.createElement('img'); img.src = bustCache(m.avatar_url || getDefaultAvatar(m.email)); img.onerror = function(){ this.src = getDefaultAvatar(m.email); };
+        img.addEventListener('click', function(){ if (m.email) showUserProfile(m.email); });
+        it.appendChild(img);
+        var inf = document.createElement('div'); inf.className = 'info';
+        var nm = document.createElement('div'); nm.className = 'name';
+        nm.textContent = m.display_name || (m.email ? m.email.split('@')[0] : '用户');
+        if (m.role && m.role !== 'member') {
+            var role = document.createElement('span'); role.className = 'role'; role.textContent = m.role === 'owner' ? '创建者' : '管理员';
+            nm.appendChild(role);
+        }
+        inf.appendChild(nm);
+        var em = document.createElement('div'); em.className = 'email'; em.textContent = m.email || '';
+        inf.appendChild(em);
+        it.appendChild(inf);
+        convMembersList.appendChild(it);
+    });
+}
+function closeConvInfoDialog() { convInfoOverlay.classList.remove('active'); }
+async function leaveCurrentConversation() {
+    if (!currentConversationId || currentConversationId === 1) return;
+    if (!confirm('确定要退出该群组吗？')) return;
+    try {
+        var res = await supabase.from('conversation_participants').delete().eq('conversation_id', currentConversationId).eq('user_id', currentUserId);
+        if (res.error) throw res.error;
+        delete convMembersCache[currentConversationId];
+        unsubscribeConversation(currentConversationId);
+        closeConvInfoDialog();
+        await loadUserConversations();
+        var def = userConversations[0];
+        if (def) switchConversation(def.conversation_id);
+    } catch(e) { console.error(e); alert('退出失败：' + (e.message || '未知错误')); }
+}
+async function addMembersToCurrentConv() {
+    if (!currentConversationId || currentConversation.type !== 'group') return;
+    var input = prompt('输入要邀请的用户邮箱（多个用逗号分隔）：');
+    if (!input) return;
+    var emails = input.split(/[,，\s]+/).map(function(s){ return s.trim(); }).filter(Boolean);
+    if (!emails.length) return;
+    try {
+        var pr = await supabase.from('profiles').select('id,email').in('email', emails);
+        if (pr.error) throw pr.error;
+        if (!pr.data || !pr.data.length) { alert('没找到匹配的用户'); return; }
+        var rows = pr.data.map(function(p){ return { conversation_id: currentConversationId, user_id: p.id, role: 'member' }; });
+        var ins = await supabase.from('conversation_participants').insert(rows);
+        if (ins.error) throw ins.error;
+        alert('已邀请 ' + rows.length + ' 位成员');
+        closeConvInfoDialog();
+        loadConvMembers(currentConversationId);
+    } catch(e) { console.error(e); alert('邀请失败：' + (e.message || '未知错误')); }
 }
 
 // === 图片预览 ===
@@ -1952,6 +2587,29 @@ avatarFileInput.addEventListener('change', e => { if (e.target.files.length) upl
 document.getElementById('checkUpdateBtn').addEventListener('click', checkForUpdate);
 onlineUsersBtn.addEventListener('click', e => { e.stopPropagation(); onlineModal.classList.toggle('active'); });
 closeOnlineModal.addEventListener('click', () => onlineModal.classList.remove('active'));
+
+// === 新建会话 / 会话信息事件 ===
+if (newConvBtn) newConvBtn.addEventListener('click', openNewConvDialog);
+if (closeNewConv) closeNewConv.addEventListener('click', closeNewConvDialog);
+if (cancelNewConv) cancelNewConv.addEventListener('click', closeNewConvDialog);
+if (newConvOverlay) newConvOverlay.addEventListener('click', function(e){ if (e.target === newConvOverlay) closeNewConvDialog(); });
+document.querySelectorAll('.conv-tab').forEach(function(btn){
+    btn.addEventListener('click', function(){
+        newConvTab = btn.dataset.tab;
+        document.querySelectorAll('.conv-tab').forEach(function(b){ b.classList.toggle('active', b === btn); });
+        document.querySelectorAll('.conv-panel').forEach(function(p){ p.classList.toggle('hidden', p.dataset.panel !== newConvTab); });
+        if (newConvTab === 'direct') { confirmNewConv.textContent = '创建'; confirmNewConv.disabled = true; setTimeout(function(){ searchUserInput.focus(); }, 30); }
+        else { confirmNewConv.textContent = '创建'; confirmNewConv.disabled = !(groupDraftUsers.length && groupNameInput.value.trim()); setTimeout(function(){ groupNameInput.focus(); }, 30); }
+        newConvMsg.textContent = '';
+    });
+});
+if (convInfoBtn) convInfoBtn.addEventListener('click', openConvInfoDialog);
+if (closeConvInfo) closeConvInfo.addEventListener('click', closeConvInfoDialog);
+if (convInfoOverlay) convInfoOverlay.addEventListener('click', function(e){ if (e.target === convInfoOverlay) closeConvInfoDialog(); });
+if (leaveConvBtn) leaveConvBtn.addEventListener('click', leaveCurrentConversation);
+if (addMembersBtn) addMembersBtn.addEventListener('click', addMembersToCurrentConv);
+if (groupNameInput) groupNameInput.addEventListener('input', function(){ confirmNewConv.disabled = !(groupDraftUsers.length && groupNameInput.value.trim()); });
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') { closeNewConvDialog(); closeConvInfoDialog(); } });
 document.addEventListener('click', e => { if (onlineModal.classList.contains('active') && !onlineModal.contains(e.target) && !onlineUsersBtn.contains(e.target)) onlineModal.classList.remove('active'); });
 closeProfileModal.addEventListener('click', () => profileModal.classList.remove('active'));
 profileModal.addEventListener('click', e => { if (e.target === profileModal) profileModal.classList.remove('active'); });
